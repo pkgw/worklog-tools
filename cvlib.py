@@ -64,6 +64,30 @@ def slurp_template (stem):
         return f.read ().decode ('utf8')
 
 
+def process_template (stem, commands, context):
+    """Read through a template line-by-line and replace special lines. Each
+    regular line is yielded to the caller. `commands` is a dictionary of
+    strings to callables; if the first word in a line is in `commands`, the
+    callable is invoked, with `context` and the remaining words in the line as
+    arguments. Its return value is either a string or an iterable, with each
+    iterate being yielded to the caller in the latter case."""
+
+    with open_template (stem) as f:
+        for line in f:
+            line = line.decode ('utf8').rstrip ()
+            a = line.split ()
+
+            if not len (a) or a[0] not in commands:
+                yield line
+            else:
+                result = commands[a[0]] (context, *a[1:])
+                if isinstance (result, basestring):
+                    yield result
+                else:
+                    for subline in result:
+                        yield subline
+
+
 # Text formatting. The internal format is basic HTML in Unicode. This is
 # exported to LaTeX for those cases that need it -- it seems easier to go this
 # direction than the other.
@@ -128,7 +152,7 @@ def load (datadir='.'):
     from os.path import join
     from inifile import read as iniread
 
-    for item in listdir (datadir):
+    for item in sorted (listdir (datadir)):
         if not item.endswith ('.txt'):
             continue
 
@@ -180,14 +204,16 @@ def canonicalize_name (name):
 
 
 def best_url (item):
+    from urllib2 import quote
+
     if item.has ('bibcode'):
-        return 'http://adsabs.harvard.edu/abs/' + item.bibcode
+        return 'http://adsabs.harvard.edu/abs/' + quote (item.bibcode)
     if item.has ('doi'):
-        return 'http://dx.doi.org/' + item.doi
+        return 'http://dx.doi.org/' + quote (item.doi)
     if item.has ('url'):
         return item.url
     if item.has ('arxiv'):
-        return 'http://arxiv.org/abs/' + item.arxiv
+        return 'http://arxiv.org/abs/' + quote (item.arxiv)
 
     return None
 
@@ -232,10 +258,10 @@ def cite_info (item):
         info.vcite = ', '.join (item.yjvp.split ('/'))
     elif item.has ('bookref') and item.has ('posid'):
         # Proceedings of Science
-        info.vcite = '%d, in %s, %s' % (year, item.bookref, item.posid)
+        info.vcite = '%d, in %s, %s' % (info.year, item.bookref, item.posid)
     elif item.has ('series') and item.has ('itemid'):
         # Various numbered series.
-        info.vcite = '%d, %s, #%s' % (year, item.series, item.itemid)
+        info.vcite = '%d, %s, #%s' % (info.year, item.series, item.itemid)
     elif item.has ('tempstatus'):
         # "in prep"-type items with temporary, manually-set info
         info.vcite = item.tempstatus
@@ -296,3 +322,68 @@ def cite_stats_to_html (pubs):
     info.year, info.month, info.day = gmtime (meddate)[:3]
     info.monthstr = months[info.month - 1]
     return info.format (slurp_template ('citestats.frag.html'))
+
+
+def partition_pubs (pubs):
+    groups = Holder ()
+    groups.all = []
+    groups.refereed = []
+    groups.non_refereed = []
+
+    for pub in pubs:
+        groups.all.append (pub)
+
+        if pub.refereed == 'y':
+            groups.refereed.append (pub)
+        else:
+            groups.non_refereed.append (pub)
+
+    return groups
+
+
+# Commands for templates
+
+def cmd_latex_cite_stats (context):
+    yield html_to_latex (cite_stats_to_html (context.pubgroups.all))
+
+
+def cmd_latex_pub_list (context, group, template):
+    tmpltext = slurp_template (template)
+    pubs = context.pubgroups.get (group)
+
+    for pub in pubs:
+        html = cite_info (pub).format (tmpltext)
+        yield html_to_latex (html)
+
+
+# Driver
+
+def driver (template, datadir='.', outenc='utf8'):
+    context = Holder ()
+    context.items = list (load (datadir))
+    context.pubs = [i for i in context.items if i.section == 'pub']
+    context.pubgroups = partition_pubs (context.pubs)
+
+    commands = {}
+    commands['LATEXCITESTATS'] = cmd_latex_cite_stats
+    commands['LATEXPUBLIST'] = cmd_latex_pub_list
+
+    for outline in process_template (template, commands, context):
+        print outline.encode (outenc)
+
+
+if __name__ == '__main__':
+    import sys
+
+    if '-a' in sys.argv:
+        outenc = 'ascii'
+        sys.argv.remove ('-a')
+    else:
+        outenc = 'utf8'
+
+    if len (sys.argv) == 2:
+        driver (sys.argv[1], '.', outenc=outenc)
+    elif len (sys.argv) == 3:
+        driver (sys.argv[1], sys.argv[2], outenc=outenc)
+    else:
+        die ('unexpected command-line arguments')

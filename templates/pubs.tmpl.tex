@@ -1,0 +1,62 @@
+% Template for a TeX publication list using XeTeX and microtype.
+
+\documentclass[letterpaper,11pt]{article}
+\usepackage[xetex,margin=0.5in,bottom=0.75in]{geometry}
+
+\usepackage{fontspec}
+\newfontfeature{Microtype}{protrusion=default;expansion=default;}
+\setmainfont[Microtype,Ligatures=TeX]{Linux Libertine O}
+
+\usepackage{url,longtable}
+\usepackage[colorlinks,urlcolor=blue]{hyperref}
+\usepackage{array} % enables >{\RaggedRight} trick
+\usepackage{ragged2e} % supplies \[rR]agged[rR]ight that works in tables
+
+\urlstyle{sf}
+
+
+% Layout futzing. TODO: tweak / less futzy.
+\parindent=0in
+\parskip=0.5ex plus 1ex minus -0.2ex%
+
+% Bibliography-style indentation management.
+
+\newlength{\mybibindent}
+\mybibindent=3ex
+
+\newcommand{\startbib}{%
+\parindent=-\mybibindent%
+\advance \leftskip \mybibindent%
+}
+
+\newcommand{\donebib}{%
+\parindent=\mybibindent%
+\advance \leftskip -\mybibindent%
+}
+
+\newcommand{\mypubsection}[1]{%
+\vskip 3.5ex plus 1ex minus -0.2ex%
+\mynoindent{\textbf{\Large #1}}%
+\vskip 1ex%
+}
+
+
+\begin{document}
+
+% Need the \hfill (vs. \hfil) to overcome the raggedright here, I think.
+{\hfill \textbf{\Large Peter Kelsey George Williams \hfill}}
+
+{\hfill \large Publications \hfill}
+\vskip 2ex
+
+A web-based publication list may be found at
+\url{http://newton.cx/~peter/pubs/}. ADS citation counts are shown in square
+brackets.
+LATEXCITESTATS
+
+\raggedright
+
+LATEXPUBLIST refereed vcite.frag.html
+LATEXPUBLIST non_refereed vcite.frag.html
+
+\end{document}
