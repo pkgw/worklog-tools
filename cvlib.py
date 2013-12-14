@@ -338,6 +338,8 @@ def partition_pubs (pubs):
         else:
             groups.non_refereed.append (pub)
 
+    groups.refereed_rev = groups.refereed[::-1]
+    groups.non_refereed_rev = groups.non_refereed[::-1]
     return groups
 
 
@@ -362,9 +364,14 @@ def cmd_latex_cite_stats (context):
 def cmd_latex_pub_list (context, group, template):
     tmpltext = slurp_template (template)
     pubs = context.pubgroups.get (group)
+    npubs = len (pubs)
 
-    for pub in pubs:
-        html = cite_info (pub).format (tmpltext)
+    for num, pub in enumerate (pubs):
+        info = cite_info (pub)
+        info.number = num + 1
+        info.rev_number = npubs - num
+
+        html = info.format (tmpltext)
         yield html_to_latex (html)
 
 
