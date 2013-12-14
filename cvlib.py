@@ -279,12 +279,21 @@ def cite_info (item):
 
 def compute_cite_stats (pubs):
     """Compute an h-index and other stats from the known publications."""
+    from time import gmtime
 
+    stats = Holder ()
+    stats.refpubs = 0
+    stats.refcites = 0
+    stats.reffirstauth = 0
     cites = []
     dates = []
-    refcites = 0
 
     for pub in pubs:
+        if pub.refereed == 'y':
+            stats.refpubs += 1
+            if int (pub.mypos) == 1:
+                stats.reffirstauth += 1
+
         citeinfo = parse_ads_cites (pub)
         if citeinfo is None:
             continue
@@ -295,33 +304,31 @@ def compute_cite_stats (pubs):
         dates.append (citeinfo.lastupdate)
 
         if pub.refereed == 'y':
-            refcites += citeinfo.cites
+            stats.refcites += citeinfo.cites
 
     if not len (cites):
-        return 0, 0, 0
+        stats.meddate = 0
+        stats.hindex = 0
+    else:
+        ranked = sorted (cites, reverse=True)
+        index = 0
 
-    ranked = sorted (cites, reverse=True)
-    index = 0
+        while index < len (ranked) and ranked[index] >= index + 1:
+            index += 1
 
-    while index < len (ranked) and ranked[index] >= index + 1:
-        index += 1
+        dates = sorted (dates)
+        stats.meddate = dates[len (dates) // 2]
+        stats.hindex = index
 
-    dates = sorted (dates)
-    meddate = dates[len (dates) // 2]
-
-    return refcites, index, meddate
+    stats.year, stats.month, stats.day = gmtime (stats.meddate)[:3]
+    stats.monthstr = months[stats.month - 1]
+    return stats
 
 
 def cite_stats_to_html (pubs):
     """Returns HTML text describing citation statistics (most important,
     h-index)."""
-    from time import gmtime
-
-    info = Holder ()
-    info.refcites, info.hindex, meddate = compute_cite_stats (pubs)
-    info.year, info.month, info.day = gmtime (meddate)[:3]
-    info.monthstr = months[info.month - 1]
-    return info.format (slurp_template ('citestats.frag.html'))
+    return compute_cite_stats (pubs).format (slurp_template ('citestats.frag.html'))
 
 
 def partition_pubs (pubs):
