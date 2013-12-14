@@ -61,18 +61,28 @@ def open_template (stem):
 
 def slurp_template (stem):
     with open_template (stem) as f:
-        return unicode (f.read ())
+        return f.read ().decode ('utf8')
 
 
 # Text formatting. The internal format is basic HTML in Unicode. This is
 # exported to LaTeX for those cases that need it -- it seems easier to go this
 # direction than the other.
 
+def html_escape (text):
+    """Escape special characters for our dumb subset of HTML."""
+
+    return (unicode (text)
+            .replace ('<', '&lt;')
+            .replace ('>', '&gt;')
+            .replace ('&', '&amp;'))
+
+
 _html_latex_tags = {
     '<i>': r'\textit{',
     '</i>': r'}',
     '<em>': r'\emph{',
     '</em>': r'}',
+    '</a>': r'}',
 }
 
 def html_to_latex (html):
@@ -82,7 +92,7 @@ def html_to_latex (html):
     sensibly be done in Unicode should be.
     """
 
-    from re import split
+    from re import split, match
     from unicode_to_latex import unicode_to_latex as latex
 
     a = split ('(<[^>]+>)', unicode (html))
@@ -92,6 +102,15 @@ def html_to_latex (html):
         if c is not None:
             return c
 
+        if piece.startswith ('<a '):
+            m = match ('<a href="(.*)">', piece)
+            if not m:
+                die ('malformed dumb-HTML <a> tag: "%s"', piece)
+            url = m.groups ()[0]
+            url = (url.replace ('&lt;', '<').replace ('&gt;', '>')
+                   .replace ('&amp;', '&'))
+            return r'\href{' + url + '}{'
+
         if '<' in piece or '>' in piece:
             die ('missing HTML-to-LaTeX translation of "%s"', piece)
 
@@ -100,6 +119,22 @@ def html_to_latex (html):
         return latex (piece)
 
     return ''.join (tolatex_piece (piece) for piece in a)
+
+
+# Loading up the data
+
+def load (datadir='.'):
+    from os import listdir
+    from os.path import join
+    from inifile import read as iniread
+
+    for item in listdir (datadir):
+        if not item.endswith ('.txt'):
+            continue
+
+        path = join (datadir, item)
+        for item in iniread (path):
+            yield item
 
 
 # Utilities for dealing with publications.
@@ -119,7 +154,7 @@ def parse_ads_cites (pub):
         warn ('cannot parse adscites entry "%s"', pub.adscites)
         return None
 
-    return inifile.Holder (lastupdate=lastupdate, cites=cites)
+    return Holder (lastupdate=lastupdate, cites=cites)
 
 
 def canonicalize_name (name):
@@ -155,6 +190,65 @@ def best_url (item):
         return 'http://arxiv.org/abs/' + item.arxiv
 
     return None
+
+
+def cite_info (item):
+    """Create a Holder with citation text from a publication item. This can then
+    be fed into a template however one wants. The various computed fields are
+    are HTML Unicode."""
+
+    # FIXME: this function requires too much care in making sure I've rememebered
+    # to HTML escape things.
+
+    info = item.copy ()
+
+    # Canonicalized authors with highlighting of self.
+    cauths = [html_escape (canonicalize_name (a)) for a in item.authors.split (';')]
+
+    i = int (item.mypos) - 1
+    if cauths[i] == 'PH' + nbsp + 'Williams':
+        cauths[i] += ' (sic)' # ahhh ...
+    cauths[i] = '<em>' + cauths[i] + '</em>'
+    info.authors = ', '.join (cauths)
+
+    # Title -- one with replaced quotes, for nesting in double-quotes.
+    info.title = html_escape (item.title)
+    info.quotable_title = html_escape (item.title.replace (u'“', u'‘').replace (u'”', u'’'))
+
+    # Pub year.
+    info.year = int (item.pubdate.split ('/')[0])
+
+    # Template-friendly citation count
+    citeinfo = parse_ads_cites (item)
+    if citeinfo is not None and citeinfo.cites > 0:
+        info.citecountnote = u' [%d]' % citeinfo.cites
+    else:
+        info.citecountnote = u''
+
+    # Verbose citation contents -- the big complicated one.
+    if item.has ('yjvi'):
+        info.vcite = ', '.join (item.yjvi.split ('/'))
+    elif item.has ('yjvp'):
+        info.vcite = ', '.join (item.yjvp.split ('/'))
+    elif item.has ('bookref') and item.has ('posid'):
+        # Proceedings of Science
+        info.vcite = '%d, in %s, %s' % (year, item.bookref, item.posid)
+    elif item.has ('series') and item.has ('itemid'):
+        # Various numbered series.
+        info.vcite = '%d, %s, #%s' % (year, item.series, item.itemid)
+    elif item.has ('tempstatus'):
+        # "in prep"-type items with temporary, manually-set info
+        info.vcite = item.tempstatus
+    else:
+        die ('no citation information for %s', item)
+
+    info.vcite = html_escape (info.vcite)
+
+    url = best_url (item)
+    if url is not None:
+        info.vcite = u'<a href="%s">%s</a>' % (url, info.vcite)
+
+    return info
 
 
 def compute_cite_stats (pubs):
