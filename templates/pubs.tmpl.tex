@@ -7,56 +7,53 @@
 \newfontfeature{Microtype}{protrusion=default;expansion=default;}
 \setmainfont[Microtype,Ligatures=TeX]{Linux Libertine O}
 
-\usepackage{url,longtable}
 \usepackage[colorlinks,urlcolor=blue]{hyperref}
-\usepackage{array} % enables >{\RaggedRight} trick
-\usepackage{ragged2e} % supplies \[rR]agged[rR]ight that works in tables
-
 \urlstyle{sf}
 
+\usepackage{fancyhdr,lastpage}
 
-% Layout futzing. TODO: tweak / less futzy.
-\parindent=0in
-\parskip=0.5ex plus 1ex minus -0.2ex%
+% Typography/layout of the actual citation text. TODO: indentation,
+% small spacing, etc.
 
-% Bibliography-style indentation management.
-
-\newlength{\mybibindent}
-\mybibindent=3ex
-
-\newcommand{\startbib}{%
-\parindent=-\mybibindent%
-\advance \leftskip \mybibindent%
+\newenvironment{publist}{
+  \begingroup
+  \raggedright
+  \parskip=0.5ex plus 1ex minus -0.2ex
+}{
+  \endgroup
 }
-
-\newcommand{\donebib}{%
-\parindent=\mybibindent%
-\advance \leftskip -\mybibindent%
-}
-
-\newcommand{\mypubsection}[1]{%
-\vskip 3.5ex plus 1ex minus -0.2ex%
-\mynoindent{\textbf{\Large #1}}%
-\vskip 1ex%
-}
-
 
 \begin{document}
 
-% Need the \hfill (vs. \hfil) to overcome the raggedright here, I think.
-{\hfill \textbf{\Large Peter Kelsey George Williams \hfill}}
+% running footer
+\pagestyle{fancy}
+\lhead{} \chead{} \rhead{} \renewcommand{\headrule}{\relax}
+\lfoot{\textsc{List of Publications}}
+\cfoot{\thepage/\pageref*{LastPage}}
+\rfoot{\textsc{Peter K. G. Williams}}
 
-{\hfill \large Publications \hfill}
-\vskip 2ex
+\begin{center}
+\textbf{\Large Dr. Peter Kelsey George Williams} \\
+{\large Publications}
+\end{center}
 
-A web-based publication list may be found at
+\noindent Updated
+LATEXTODAY.
+The most recent version of this list may be found online at
 \url{http://newton.cx/~peter/pubs/}. ADS citation counts are shown in square
 brackets.
 LATEXCITESTATS
 
-\raggedright
+\section*{Refereed}
 
+\begin{publist}
 LATEXPUBLIST refereed vcite.frag.html
+\end{publist}
+
+\section*{Non-Refereed}
+
+\begin{publist}
 LATEXPUBLIST non_refereed vcite.frag.html
+\end{publist}
 
 \end{document}

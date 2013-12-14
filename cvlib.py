@@ -343,8 +343,20 @@ def partition_pubs (pubs):
 
 # Commands for templates
 
+def cmd_today (context):
+    """Note the trailing period in the output."""
+    from time import time, localtime
+
+    yr, mo, dy = localtime (time ())[:3]
+    return '%s&nbsp;%d,&nbsp;%d.' % (months[mo - 1], dy, yr)
+
+
+def cmd_latex_today (context):
+    return html_to_latex (cmd_today (context))
+
+
 def cmd_latex_cite_stats (context):
-    yield html_to_latex (cite_stats_to_html (context.pubgroups.all))
+    return html_to_latex (cite_stats_to_html (context.pubgroups.all))
 
 
 def cmd_latex_pub_list (context, group, template):
@@ -365,6 +377,8 @@ def driver (template, datadir='.', outenc='utf8'):
     context.pubgroups = partition_pubs (context.pubs)
 
     commands = {}
+    commands['TODAY.'] = cmd_today
+    commands['LATEXTODAY.'] = cmd_latex_today
     commands['LATEXCITESTATS'] = cmd_latex_cite_stats
     commands['LATEXPUBLIST'] = cmd_latex_pub_list
 
