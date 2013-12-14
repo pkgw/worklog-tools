@@ -104,6 +104,8 @@ def html_escape (text):
 _html_latex_tags = {
     '<i>': r'\textit{',
     '</i>': r'}',
+    '<b>': r'\textbf{',
+    '</b>': r'}',
     '<em>': r'\emph{',
     '</em>': r'}',
     '</a>': r'}',
@@ -232,9 +234,7 @@ def cite_info (item):
     cauths = [html_escape (canonicalize_name (a)) for a in item.authors.split (';')]
 
     i = int (item.mypos) - 1
-    if cauths[i] == 'PH' + nbsp + 'Williams':
-        cauths[i] += ' (sic)' # ahhh ...
-    cauths[i] = '<em>' + cauths[i] + '</em>'
+    cauths[i] = '<b>' + cauths[i] + '</b>'
     info.authors = ', '.join (cauths)
 
     # Title -- one with replaced quotes, for nesting in double-quotes.
