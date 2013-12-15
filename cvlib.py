@@ -147,6 +147,19 @@ def html_to_latex (html):
     return ''.join (tolatex_piece (piece) for piece in a)
 
 
+def raw_latex_format (item, template):
+    # XXX I worry about %d, etc.
+
+    from unicode_to_latex import unicode_to_latex as latex
+    converted = {}
+
+    for key, val in item.__dict__.iteritems ():
+        if isinstance (val, unicode):
+            converted[key] = latex (val)
+
+    return template % converted
+
+
 # Loading up the data
 
 def load (datadir='.'):
@@ -368,6 +381,16 @@ def cmd_latex_cite_stats (context):
     return html_to_latex (cite_stats_to_html (context.pubgroups.all))
 
 
+def cmd_latex_list (context, section, template):
+    from unicode_to_latex import unicode_to_latex as latex
+    tmpltext = slurp_template (template)
+
+    for item in context.items:
+        if item.section != section:
+            continue
+        yield raw_latex_format (item, tmpltext)
+
+
 def cmd_latex_pub_list (context, group, template):
     tmpltext = slurp_template (template)
     pubs = context.pubgroups.get (group)
@@ -393,6 +416,7 @@ def driver (template, datadir='.'):
     commands = {}
     commands['TODAY.'] = cmd_today
     commands['LATEXTODAY.'] = cmd_latex_today
+    commands['LATEXLIST'] = cmd_latex_list
     commands['LATEXCITESTATS'] = cmd_latex_cite_stats
     commands['LATEXPUBLIST'] = cmd_latex_pub_list
 
