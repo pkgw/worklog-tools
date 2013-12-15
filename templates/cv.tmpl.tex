@@ -1,0 +1,100 @@
+% Template for a LaTeX CV using XeTeX and microtype.
+
+\documentclass[letterpaper,11pt]{article}
+\usepackage[xetex,margin=0.5in,bottom=0.75in]{geometry}
+
+\usepackage{fontspec}
+\newfontfeature{Microtype}{protrusion=default;expansion=default;}
+\setmainfont[Microtype,Ligatures=TeX]{Linux Libertine O}
+
+\usepackage[colorlinks,urlcolor=blue]{hyperref}
+\urlstyle{sf}
+
+\usepackage{array} % enables >{\RaggedRight} trick
+\usepackage{fancyhdr} % enables \pagestyle{fancy}
+\usepackage{lastpage} % enables \pageref*{LastPage}
+\usepackage{longtable} % enables \begin{longtable}
+\usepackage{ragged2e} % supplies \[rR]agged[rR]ight that works in tables
+
+% Layout infrastructure.
+
+\newlength{\myindent} \setlength{\myindent}{12pt}
+
+\setlength{\parindent}{\myindent}
+\leftskip=0in
+\parskip=0.5ex plus 1ex minus -0.2ex%
+
+\newenvironment{pwnoindent}
+  {\setlength{\parindent}{0pt}}
+  {\setlength{\parindent}{\myindent}}
+
+
+% Uniform table sizing.
+
+\newlength{\datewidth} \datewidth=14ex
+\newlength{\descwidth} \descwidth=\textwidth
+\advance \descwidth -\datewidth
+\advance \descwidth -\myindent
+
+\newcommand{\beginmytable}{%
+  \begin{longtable}{@{}p{\datewidth}>{\raggedright}p{\descwidth}}}
+\newcommand{\donemytable}{%
+  \end{longtable}}
+
+\LTpre=0in % longtable likes to pad out the tables a lot.
+\LTpost=0in
+\LTleft=\myindent % honor my indent/layout scheme.
+
+
+% Section titles.
+\usepackage{titlesec}
+\titleformat{\section}{\normalfont\large\bfseries}{\thesection}{1em}{}
+\titlespacing*{\section}{0pt}{2.5ex plus 1ex minus 0.2ex}{1ex plus 0.2ex}
+
+
+% Can finally get this show started.
+\begin{document}
+
+% running footer
+\pagestyle{fancy}
+\lhead{} \chead{} \rhead{} \renewcommand{\headrule}{\relax}
+\lfoot{\textsc{Curriculum Vitæ}}
+\cfoot{\thepage/\pageref*{LastPage}}
+\rfoot{\textsc{Peter K. G. Williams}}
+
+\begin{pwnoindent}
+
+\begin{center}
+\textbf{\Large Dr. Peter Kelsey George Williams} \\
+{\large Curriculum Vit\ae}
+\end{center}
+
+\medskip
+
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lr}
+Harvard-Smithsonian Center for Astrophysics &
+ \textsf{\href{mailto:pwilliams@cfa.harvard.edu}{pwilliams@cfa.harvard.edu}} \cr
+60 Garden St. MS-20 &
+ \url{http://newton.cx/~peter/} \cr
+Cambridge, MA 02138 &
+ Mobile: +1 617 922 2689
+\end{tabular*}
+
+\medskip
+
+Updated
+LATEXTODAY.
+The latest version of this document is online at
+\url{http://newton.cx/~peter/cv/}.
+
+\end{pwnoindent}
+
+%TABLE ed
+%TABLE jobs
+%TABLE fawards
+%TABLE talks
+%TABLE train
+%TABLE teach
+%TABLE outreach
+
+\end{document}
