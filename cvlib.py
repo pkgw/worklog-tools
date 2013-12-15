@@ -384,7 +384,7 @@ def cmd_latex_pub_list (context, group, template):
 
 # Driver
 
-def driver (template, datadir='.', outenc='utf8'):
+def driver (template, datadir='.'):
     context = Holder ()
     context.items = list (load (datadir))
     context.pubs = [i for i in context.items if i.section == 'pub']
@@ -397,21 +397,15 @@ def driver (template, datadir='.', outenc='utf8'):
     commands['LATEXPUBLIST'] = cmd_latex_pub_list
 
     for outline in process_template (template, commands, context):
-        print outline.encode (outenc)
+        print outline.encode ('utf8')
 
 
 if __name__ == '__main__':
     import sys
 
-    if '-a' in sys.argv:
-        outenc = 'ascii'
-        sys.argv.remove ('-a')
-    else:
-        outenc = 'utf8'
-
     if len (sys.argv) == 2:
-        driver (sys.argv[1], '.', outenc=outenc)
+        driver (sys.argv[1], '.')
     elif len (sys.argv) == 3:
-        driver (sys.argv[1], sys.argv[2], outenc=outenc)
+        driver (sys.argv[1], sys.argv[2])
     else:
         die ('unexpected command-line arguments')
