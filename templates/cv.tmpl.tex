@@ -10,40 +10,31 @@
 \usepackage[colorlinks,urlcolor=blue]{hyperref}
 \urlstyle{sf}
 
-\usepackage{array} % enables >{\RaggedRight} trick
-\usepackage{fancyhdr} % enables \pagestyle{fancy}
-\usepackage{lastpage} % enables \pageref*{LastPage}
-\usepackage{longtable} % enables \begin{longtable}
-\usepackage{ragged2e} % supplies \[rR]agged[rR]ight that works in tables
-
-% Layout infrastructure.
-
-\newlength{\myindent} \setlength{\myindent}{12pt}
-
-\setlength{\parindent}{\myindent}
-\leftskip=0in
-\parskip=0.5ex plus 1ex minus -0.2ex%
-
-\newenvironment{pwnoindent}
-  {\setlength{\parindent}{0pt}}
-  {\setlength{\parindent}{\myindent}}
+\usepackage{fancyhdr,lastpage} % needed for the fancy footer
 
 
-% Uniform table sizing.
+% Layout. Very little comes in bare paragraphs. Most of the content
+% is in uniformly-sized tables with a small indent.
 
+\usepackage{array,longtable,ragged2e}
+
+\setlength{\parindent}{0pt}
+
+\newlength{\tabindent} \setlength{\tabindent}{12pt}
 \newlength{\datewidth} \datewidth=14ex
 \newlength{\descwidth} \descwidth=\textwidth
 \advance \descwidth -\datewidth
-\advance \descwidth -\myindent
-
-\newcommand{\beginmytable}{%
-  \begin{longtable}{@{}p{\datewidth}>{\raggedright}p{\descwidth}}}
-\newcommand{\donemytable}{%
-  \end{longtable}}
+\advance \descwidth -\tabindent
 
 \LTpre=0in % longtable likes to pad out the tables a lot.
 \LTpost=0in
-\LTleft=\myindent % honor my indent/layout scheme.
+\LTleft=\tabindent
+
+\newenvironment{mytable}{
+  \begin{longtable}{@{}p{\datewidth}>{\raggedright}p{\descwidth}}
+}{
+  \end{longtable}
+}
 
 
 % Section titles.
@@ -61,8 +52,6 @@
 \lfoot{\textsc{Curriculum Vitæ}}
 \cfoot{\thepage/\pageref*{LastPage}}
 \rfoot{\textsc{Peter K. G. Williams}}
-
-\begin{pwnoindent}
 
 \begin{center}
 \textbf{\Large Dr. Peter Kelsey George Williams} \\
@@ -87,22 +76,20 @@ TODAY.
 The latest version of this document is online at
 \url{http://newton.cx/~peter/cv/}.
 
-\end{pwnoindent}
-
 \section*{Education}
-\beginmytable
+\begin{mytable}
 RMISCLIST education cv.education.frag.tex
-\donemytable
+\end{mytable}
 
 \section*{Employment}
-\beginmytable
+\begin{mytable}
 RMISCLIST job cv.job.frag.tex
-\donemytable
+\end{mytable}
 
 \section*{Fellowships and Awards}
-\beginmytable
+\begin{mytable}
 RMISCLIST fellowship,award cv.faward.frag.tex
-\donemytable
+\end{mytable}
 
 % TODO: research interests
 
@@ -111,25 +98,25 @@ RMISCLIST fellowship,award cv.faward.frag.tex
 % TODO: time allocated
 
 \section*{Professional Talks}
-\beginmytable
+\begin{mytable}
 RMISCLIST talk cv.talk.frag.tex
-\donemytable
+\end{mytable}
 
 % TODO: advising
 
 \section*{Other Training}
-\beginmytable
+\begin{mytable}
 RMISCLIST training cv.train.frag.tex
-\donemytable
+\end{mytable}
 
 \section*{Teaching}
-\beginmytable
+\begin{mytable}
 RMISCLIST teaching cv.teach.frag.tex
-\donemytable
+\end{mytable}
 
 \section*{Outreach}
-\beginmytable
+\begin{mytable}
 RMISCLIST outreach cv.outreach.frag.tex
-\donemytable
+\end{mytable}
 
 \end{document}
