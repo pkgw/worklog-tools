@@ -248,6 +248,10 @@ def mutateStream (instream, outstream):
         yield chunk
         chunk.emit (outstream)
 
+    if len (misclines):
+        for miscline in misclines:
+            outstream.write (miscline)
+
 
 def mutate (instream_or_path, outstream_or_path, outmode='w'):
     if isinstance (instream_or_path, basestring):
