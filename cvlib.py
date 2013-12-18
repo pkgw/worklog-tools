@@ -326,6 +326,10 @@ def canonicalize_name (name):
     return ''.join (abbrev) + nbsp + surname
 
 
+def surname (name):
+    return name.strip ().split ()[-1].replace ('_', ' ')
+
+
 def best_url (item):
     from urllib2 import quote
 
@@ -353,15 +357,34 @@ def cite_info (item):
 
     i = int (item.mypos) - 1
     cauths[i] = MupBold (cauths[i])
-    info.authors = MupJoin (', ', cauths)
+    info.full_authors = MupJoin (', ', cauths)
+
+    # Short list of authors, with self as 'PKGW'.
+    sauths = [surname (a) for a in item.authors.split (';')]
+    sauths[i] = 'PKGW'
+
+    if len (sauths) == 1:
+        info.short_authors = sauths[0]
+    elif len (sauths) == 2:
+        info.short_authors = ' & '.join (sauths)
+    elif len (sauths) == 3:
+        info.short_authors = ', '.join (sauths)
+    else:
+        info.short_authors = sauths[0] + ' et' + nbsp + 'al.'
+
+    if item.refereed == 'y':
+        info.refereed_mark = u'»'
+    else:
+        info.refereed_mark = u''
+
+    # Title with replaced quotes, for nesting in double-quotes, and
+    # optionally-bolded for first authorship.
+    info.quotable_title = item.title.replace (u'“', u'‘').replace (u'”', u'’')
 
     if i == 0:
-        info.first_author_mark = u'»'
+        info.bold_if_first_title = MupBold (item.title)
     else:
-        info.first_author_mark = u''
-
-    # Title with replaced quotes, for nesting in double-quotes.
-    info.quotable_title = item.title.replace (u'“', u'‘').replace (u'”', u'’')
+        info.bold_if_first_title = item.title
 
     # Pub year and nicely-formatted date
     info.year, info.month = map (int, item.pubdate.split ('/'))
@@ -374,7 +397,7 @@ def cite_info (item):
     else:
         info.citecountnote = u''
 
-    # Verbose citation contents -- the big complicated one.
+    # Verbose citation contents -- a big complicated one.
     if item.has ('yjvi'):
         info.vcite = ', '.join (item.yjvi.split ('/'))
     elif item.has ('yjvp'):
@@ -395,9 +418,24 @@ def cite_info (item):
     if url is not None:
         info.vcite = MupLink (url, info.vcite)
 
-    # Other links for the web pub list
-    # abstract preprint offocial other_link
+    # Informal citation contents, without year.
+    if item.has ('yjvi'):
+        info.icite = ' '.join (item.yjvi.split ('/')[1:])
+    elif item.has ('yjvp'):
+        info.icite = ' '.join (item.yjvp.split ('/')[1:])
+    elif item.has ('bookref') and item.has ('posid'):
+        # Proceedings of Science
+        info.icite = '%s (%s)' % (item.bookref, item.posid)
+    elif item.has ('series') and item.has ('itemid'):
+        # Various numbered series.
+        info.icite = '%s #%s' % (item.series, item.itemid)
+    elif item.has ('tempstatus'):
+        # "in prep"-type items with temporary, manually-set info
+        info.icite = item.tempstatus
+    else:
+        die ('no citation information for %s', item)
 
+    # Other links for the web pub list
     from urllib2 import quote as urlquote
 
     if item.has ('bibcode'):
