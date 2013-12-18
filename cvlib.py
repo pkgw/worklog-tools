@@ -489,11 +489,12 @@ def cmd_pub_list (context, group, template):
         yield fmt (info)
 
 
-def cmd_misc_list (context, section, template):
+def cmd_rev_misc_list (context, sections, template):
     fmt = Formatter (context.render, True, slurp_template (template))
+    sections = frozenset (sections.split (','))
 
-    for item in context.items:
-        if item.section != section:
+    for item in context.items[::-1]:
+        if item.section not in sections:
             continue
 
         yield fmt (item)
@@ -512,7 +513,7 @@ def driver (template, render, datadir):
     commands['TODAY.'] = cmd_today
     commands['CITESTATS'] = cmd_cite_stats
     commands['PUBLIST'] = cmd_pub_list
-    commands['MISCLIST'] = cmd_misc_list
+    commands['RMISCLIST'] = cmd_rev_misc_list
 
     for outline in process_template (template, commands, context):
         print outline.encode ('utf8')
