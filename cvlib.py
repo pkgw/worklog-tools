@@ -355,11 +355,17 @@ def cite_info (item):
     cauths[i] = MupBold (cauths[i])
     info.authors = MupJoin (', ', cauths)
 
+    if i == 0:
+        info.first_author_mark = u'»'
+    else:
+        info.first_author_mark = u''
+
     # Title with replaced quotes, for nesting in double-quotes.
     info.quotable_title = item.title.replace (u'“', u'‘').replace (u'”', u'’')
 
-    # Pub year.
-    info.year = int (item.pubdate.split ('/')[0])
+    # Pub year and nicely-formatted date
+    info.year, info.month = map (int, item.pubdate.split ('/'))
+    info.pubdate = u'%d%s%s' % (info.year, nbsp, months[info.month - 1])
 
     # Template-friendly citation count
     citeinfo = parse_ads_cites (item)
@@ -388,6 +394,34 @@ def cite_info (item):
     url = best_url (item)
     if url is not None:
         info.vcite = MupLink (url, info.vcite)
+
+    # Other links for the web pub list
+    # abstract preprint offocial other_link
+
+    from urllib2 import quote as urlquote
+
+    if item.has ('bibcode'):
+        info.abstract_link = MupLink ('http://adsabs.harvard.edu/abs/' + urlquote (item.bibcode),
+                                      'abstract')
+    else:
+        info.abstract_link = u''
+
+    if item.has ('arxiv'):
+        info.preprint_link = MupLink ('http://arxiv.org/abs/' + urlquote (item.arxiv),
+                                      'preprint')
+    else:
+        info.preprint_link = u''
+
+    if item.has ('doi'):
+        info.official_link = MupLink ('http://dx.doi.org/' + urlquote (item.doi),
+                                      'preprint')
+    else:
+        info.official_link = u''
+
+    if item.has ('url') and not item.has ('doi'):
+        info.other_link = MupLink (item.url, item.kind)
+    else:
+        info.other_link = u''
 
     return info
 
@@ -455,6 +489,7 @@ def partition_pubs (pubs):
         else:
             groups.non_refereed.append (pub)
 
+    groups.all_rev = groups.all[::-1]
     groups.refereed_rev = groups.refereed[::-1]
     groups.non_refereed_rev = groups.non_refereed[::-1]
     return groups
