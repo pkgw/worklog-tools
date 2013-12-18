@@ -43,9 +43,6 @@ class Holder (object):
         new = self.__class__ ()
         new.__dict__ = dict (self.__dict__)
         return new
-
-    def format (self, string):
-        return string % self.__dict__
 ## end
 
 import re, os
