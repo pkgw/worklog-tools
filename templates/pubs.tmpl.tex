@@ -15,11 +15,24 @@
 % Typography/layout of the actual citation text. TODO: indentation,
 % small spacing, etc.
 
+\usepackage{enumitem}
+
 \newenvironment{publist}{
   \begingroup
-  \raggedright
-  \parskip=0.5ex plus 1ex minus -0.2ex
+  %\raggedright
+  %\parindent=-12pt
+  %\leftskip=12pt
+  %\parskip=0.5ex plus 1ex minus -0.2ex
 }{
+  \endgroup
+}
+
+\newenvironment{publist2}{
+  \begingroup
+  \raggedright
+  \begin{description}[leftmargin=4ex,style=sameline]
+}{
+  \end{description}
   \endgroup
 }
 
@@ -38,21 +51,21 @@
 \end{center}
 
 \noindent Updated
-LATEXTODAY.
+TODAY.
 The most recent version of this list may be found online at
 \url{http://newton.cx/~peter/pubs/}.
-LATEXCITESTATS
+CITESTATS citestats.frag.txt
 
 \section*{Refereed}
 
-\begin{publist}
-LATEXPUBLIST refereed_rev vcite.frag.html
-\end{publist}
+\begin{publist2}
+PUBLIST refereed_rev vcite.frag.tex
+\end{publist2}
 
 \section*{Non-Refereed}
 
-\begin{publist}
-LATEXPUBLIST non_refereed_rev vcite.frag.html
-\end{publist}
+\begin{publist2}
+PUBLIST non_refereed_rev vcite.frag.tex
+\end{publist2}
 
 \end{document}

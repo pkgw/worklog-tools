@@ -88,76 +88,184 @@ def process_template (stem, commands, context):
                         yield subline
 
 
-# Text formatting. The internal format is basic HTML in Unicode. This is
-# exported to LaTeX for those cases that need it -- it seems easier to go this
-# direction than the other.
+# Text formatting. We have a tiny DOM-type system for markup so we can
+# abstract across LaTeX and HTML. Initially I tried to do everything in HTML,
+# and then convert that to LaTeX, but the layers of escaping got a little
+# worrisome, and some constructs just don't work well in that model (e.g.
+# tables). So we do this silliness instead.
+
+from unicode_to_latex import unicode_to_latex
 
 def html_escape (text):
     """Escape special characters for our dumb subset of HTML."""
 
     return (unicode (text)
+            .replace ('&', '&amp;')
             .replace ('<', '&lt;')
             .replace ('>', '&gt;')
-            .replace ('&', '&amp;'))
+            .replace ('"', '&quot;')
+            .replace ("'", '&apos;'))
 
 
-_html_latex_tags = {
-    '<i>': r'\textit{',
-    '</i>': r'}',
-    '<b>': r'\textbf{',
-    '</b>': r'}',
-    '<em>': r'\emph{',
-    '</em>': r'}',
-    '</a>': r'}',
-}
+class Markup (object):
+    def _latex (self):
+        raise NotImplementedError ()
 
-def html_to_latex (html):
-    """Convert very simple Unicode/HTML to LaTeX. We have to do this carefully so
-    that unicode_to_latex doesn't try to double-escape control sequences. We only
-    support basic entities (e.g. &lt;) to make life easier -- anything that can
-    sensibly be done in Unicode should be.
-    """
+    def _html (self):
+        raise NotImplementedError ()
 
-    from re import split, match
-    from unicode_to_latex import unicode_to_latex as latex
+    def latex (self):
+        return u''.join (self._latex ())
 
-    a = split ('(<[^>]+>)', unicode (html))
-
-    def tolatex_piece (piece):
-        c = _html_latex_tags.get (piece)
-        if c is not None:
-            return c
-
-        if piece.startswith ('<a '):
-            m = match ('<a href="(.*)">', piece)
-            if not m:
-                die ('malformed dumb-HTML <a> tag: "%s"', piece)
-            url = m.groups ()[0]
-            url = (url.replace ('&lt;', '<').replace ('&gt;', '>')
-                   .replace ('&amp;', '&'))
-            return r'\href{' + url + '}{'
-
-        if '<' in piece or '>' in piece:
-            die ('missing HTML-to-LaTeX translation of "%s"', piece)
-
-        piece = (piece.replace ('&lt;', '<').replace ('&gt;', '>')
-                 .replace ('&nbsp;', nbsp).replace ('&amp;', '&'))
-        return latex (piece)
-
-    return ''.join (tolatex_piece (piece) for piece in a)
+    def html (self):
+        return u''.join (self._html ())
 
 
-def raw_latex_format (item, template):
-    # XXX I worry about %d, etc.
 
-    from unicode_to_latex import unicode_to_latex as latex
-    converted = {}
+def _maybe_wrap_text (thing):
+    if isinstance (thing, Markup):
+        return thing
+    return MupText (thing)
 
-    for key, val in item.__dict__.iteritems ():
-        if isinstance (val, unicode):
-            converted[key] = latex (val)
 
-    return template % converted
+class MupText (Markup):
+    def __init__ (self, text):
+        self.text = unicode (text)
+
+    def _latex (self):
+        return [unicode_to_latex (self.text)]
+
+    def _html (self):
+        return [html_escape (self.text)]
+
+
+class MupItalics (Markup):
+    def __init__ (self, inner):
+        self.inner = _maybe_wrap_text (inner)
+
+    def _latex (self):
+        return [u'\\textit{'] + self.inner._latex () + [u'}']
+
+    def _html (self):
+        return [u'<i>'] + self.inner._html () + [u'</i>']
+
+
+class MupBold (Markup):
+    def __init__ (self, inner):
+        self.inner = _maybe_wrap_text (inner)
+
+    def _latex (self):
+        return [u'\\textbf{'] + self.inner._latex () + [u'}']
+
+    def _html (self):
+        return [u'<b>'] + self.inner._html () + [u'</b>']
+
+
+class MupLink (Markup):
+    def __init__ (self, url, inner):
+        self.url = unicode (url)
+        self.inner = _maybe_wrap_text (inner)
+
+    def _latex (self):
+        return ([u'\\href{', self.url.replace ('%', '\\%'), u'}{'] +
+                self.inner._latex () + [u'}'])
+
+    def _html (self):
+        return ([u'<a href="', html_escape (self.url), u'">'] +
+                self.inner._html () + [u'</a>'])
+
+
+class MupJoin (Markup):
+    def __init__ (self, sep, items):
+        self.sep = _maybe_wrap_text (sep)
+        self.items = [_maybe_wrap_text (i) for i in items]
+
+    def _latex (self):
+        esep = self.sep._latex ()
+        result = []
+        first = True
+
+        for i in self.items:
+            if first:
+                first = False
+            else:
+                result += esep
+
+            result += i._latex ()
+
+        return result
+
+    def _html (self):
+        esep = self.sep._html ()
+        result = []
+        first = True
+
+        for i in self.items:
+            if first:
+                first = False
+            else:
+                result += esep
+
+            result += i._html ()
+
+        return result
+
+
+def render_latex (value):
+    if isinstance (value, int):
+        return unicode (value)
+    if isinstance (value, unicode):
+        return unicode_to_latex (value)
+    if isinstance (value, str):
+        return unicode_to_latex (unicode (value))
+    if isinstance (value, Markup):
+        return value.latex ()
+    raise ValueError ('don\'t know how to render %r into latex' % value)
+
+
+def render_html (value):
+    if isinstance (value, int):
+        return unicode (value)
+    if isinstance (value, unicode):
+        return html_escape (value)
+    if isinstance (value, str):
+        return html_escape (unicode (value))
+    if isinstance (value, Markup):
+        return value.html ()
+    raise ValueError ('don\'t know how to render %r into HTML' % value)
+
+
+
+class Formatter (object):
+    """Substituted items are delimited by pipes |likethis|. This works well in
+    both HTML and Latex. If `israw`, the non-substituted template text is
+    returned verbatim; otherwise, it is escaped."""
+
+    def __init__ (self, renderer, israw, text):
+        from re import split
+        pieces = split (r'(\|[^|]+\|)', text)
+
+        def process (piece):
+            if len (piece) and piece[0] == '|':
+                return True, piece[1:-1]
+            return False, piece
+
+        self.tmplinfo = [process (p) for p in pieces]
+        self.renderer = renderer
+        self.israw = israw
+
+    def _handle_one (self, tmpldata, item):
+        issubst, text = tmpldata
+
+        if not issubst:
+            if self.israw:
+                return text
+            return self.renderer (text)
+
+        return self.renderer (item.get (text))
+
+    def __call__ (self, item):
+        return ''.join (self._handle_one (d, item) for d in self.tmplinfo)
 
 
 # Loading up the data
@@ -236,23 +344,19 @@ def best_url (item):
 def cite_info (item):
     """Create a Holder with citation text from a publication item. This can then
     be fed into a template however one wants. The various computed fields are
-    are HTML Unicode."""
-
-    # FIXME: this function requires too much care in making sure I've rememebered
-    # to HTML escape things.
+    are Unicode or Markups."""
 
     info = item.copy ()
 
     # Canonicalized authors with highlighting of self.
-    cauths = [html_escape (canonicalize_name (a)) for a in item.authors.split (';')]
+    cauths = [canonicalize_name (a) for a in item.authors.split (';')]
 
     i = int (item.mypos) - 1
-    cauths[i] = '<b>' + cauths[i] + '</b>'
-    info.authors = ', '.join (cauths)
+    cauths[i] = MupBold (cauths[i])
+    info.authors = MupJoin (', ', cauths)
 
-    # Title -- one with replaced quotes, for nesting in double-quotes.
-    info.title = html_escape (item.title)
-    info.quotable_title = html_escape (item.title.replace (u'“', u'‘').replace (u'”', u'’'))
+    # Title with replaced quotes, for nesting in double-quotes.
+    info.quotable_title = item.title.replace (u'“', u'‘').replace (u'”', u'’')
 
     # Pub year.
     info.year = int (item.pubdate.split ('/')[0])
@@ -281,11 +385,9 @@ def cite_info (item):
     else:
         die ('no citation information for %s', item)
 
-    info.vcite = html_escape (info.vcite)
-
     url = best_url (item)
     if url is not None:
-        info.vcite = u'<a href="%s">%s</a>' % (url, info.vcite)
+        info.vcite = MupLink (url, info.vcite)
 
     return info
 
@@ -335,13 +437,8 @@ def compute_cite_stats (pubs):
 
     stats.year, stats.month, stats.day = gmtime (stats.meddate)[:3]
     stats.monthstr = months[stats.month - 1]
+    stats.italich = MupItalics ('h')
     return stats
-
-
-def cite_stats_to_html (pubs):
-    """Returns HTML text describing citation statistics (most important,
-    h-index)."""
-    return compute_cite_stats (pubs).format (slurp_template ('citestats.frag.html'))
 
 
 def partition_pubs (pubs):
@@ -369,30 +466,19 @@ def cmd_today (context):
     """Note the trailing period in the output."""
     from time import time, localtime
 
+    # This is a little bit gross.
     yr, mo, dy = localtime (time ())[:3]
-    return '%s&nbsp;%d,&nbsp;%d.' % (months[mo - 1], dy, yr)
+    text = '%s%s%d,%s%d.' % (months[mo - 1], nbsp, dy, nbsp, yr)
+    return context.render (text)
 
 
-def cmd_latex_today (context):
-    return html_to_latex (cmd_today (context))
+def cmd_cite_stats (context, template):
+    info = compute_cite_stats (context.pubgroups.all)
+    return Formatter (context.render, False, slurp_template (template)) (info)
 
 
-def cmd_latex_cite_stats (context):
-    return html_to_latex (cite_stats_to_html (context.pubgroups.all))
-
-
-def cmd_latex_list (context, section, template):
-    from unicode_to_latex import unicode_to_latex as latex
-    tmpltext = slurp_template (template)
-
-    for item in context.items:
-        if item.section != section:
-            continue
-        yield raw_latex_format (item, tmpltext)
-
-
-def cmd_latex_pub_list (context, group, template):
-    tmpltext = slurp_template (template)
+def cmd_pub_list (context, group, template):
+    fmt = Formatter (context.render, True, slurp_template (template))
     pubs = context.pubgroups.get (group)
     npubs = len (pubs)
 
@@ -400,25 +486,22 @@ def cmd_latex_pub_list (context, group, template):
         info = cite_info (pub)
         info.number = num + 1
         info.rev_number = npubs - num
-
-        html = info.format (tmpltext)
-        yield html_to_latex (html)
+        yield fmt (info)
 
 
 # Driver
 
-def driver (template, datadir='.'):
+def driver (template, render, datadir):
     context = Holder ()
+    context.render = render
     context.items = list (load (datadir))
     context.pubs = [i for i in context.items if i.section == 'pub']
     context.pubgroups = partition_pubs (context.pubs)
 
     commands = {}
     commands['TODAY.'] = cmd_today
-    commands['LATEXTODAY.'] = cmd_latex_today
-    commands['LATEXLIST'] = cmd_latex_list
-    commands['LATEXCITESTATS'] = cmd_latex_cite_stats
-    commands['LATEXPUBLIST'] = cmd_latex_pub_list
+    commands['CITESTATS'] = cmd_cite_stats
+    commands['PUBLIST'] = cmd_pub_list
 
     for outline in process_template (template, commands, context):
         print outline.encode ('utf8')
@@ -427,9 +510,22 @@ def driver (template, datadir='.'):
 if __name__ == '__main__':
     import sys
 
-    if len (sys.argv) == 2:
-        driver (sys.argv[1], '.')
-    elif len (sys.argv) == 3:
-        driver (sys.argv[1], sys.argv[2])
+    if len (sys.argv) not in (3, 4):
+        die ('usage: {driver} <latex|html> <template> [datadir]')
+
+    fmtname = sys.argv[1]
+    tmpl = sys.argv[2]
+
+    if len (sys.argv) < 4:
+        datadir = '.'
     else:
-        die ('unexpected command-line arguments')
+        datadir = sys.argv[3]
+
+    if fmtname == 'latex':
+        render = render_latex
+    elif fmtname == 'html':
+        render = render_html
+    else:
+        die ('unknown output format "%s"', fmtname)
+
+    driver (tmpl, render, datadir)

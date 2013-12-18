@@ -1,0 +1,4 @@
+ADS citation counts are shown in square brackets and were last updated around
+|monthstr| |day|, |year|. As of then, I was an author on |refpubs| refereed
+publications (|reffirstauth| as first author), my |italich|-index was |hindex| and
+my refereed publications had |refcites| citations.
