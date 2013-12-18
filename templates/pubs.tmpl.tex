@@ -10,24 +10,11 @@
 \usepackage[colorlinks,urlcolor=blue]{hyperref}
 \urlstyle{sf}
 
-\usepackage{fancyhdr,lastpage}
+\usepackage{fancyhdr,lastpage} % needed for fancy footer
 
-% Typography/layout of the actual citation text. TODO: indentation,
-% small spacing, etc.
-
+% Layout of the publication list:
 \usepackage{enumitem}
-
 \newenvironment{publist}{
-  \begingroup
-  %\raggedright
-  %\parindent=-12pt
-  %\leftskip=12pt
-  %\parskip=0.5ex plus 1ex minus -0.2ex
-}{
-  \endgroup
-}
-
-\newenvironment{publist2}{
   \begingroup
   \raggedright
   \begin{description}[leftmargin=4ex,style=sameline]
@@ -38,7 +25,7 @@
 
 \begin{document}
 
-% running footer
+% Fancy footer -- has to be setup after \begin{document}
 \pagestyle{fancy}
 \lhead{} \chead{} \rhead{} \renewcommand{\headrule}{\relax}
 \lfoot{\textsc{List of Publications}}
@@ -58,14 +45,14 @@ CITESTATS citestats.frag.txt
 
 \section*{Refereed}
 
-\begin{publist2}
+\begin{publist}
 PUBLIST refereed_rev vcite.frag.tex
-\end{publist2}
+\end{publist}
 
 \section*{Non-Refereed}
 
-\begin{publist2}
+\begin{publist}
 PUBLIST non_refereed_rev vcite.frag.tex
-\end{publist2}
+\end{publist}
 
 \end{document}
