@@ -211,6 +211,47 @@ class MupJoin (Markup):
         return result
 
 
+class MupList (Markup):
+    def __init__ (self, ordered, items):
+        self.ordered = bool (ordered)
+        self.items = [_maybe_wrap_text (i) for i in items]
+
+    def _latex (self):
+        if self.ordered:
+            res = [u'\\begin{enumerate}']
+        else:
+            res = [u'\\begin{itemize}']
+
+        for i in self.items:
+            res.append (u'\n\\item ')
+            res += i._latex ()
+
+        if self.ordered:
+            res.append (u'\n\\end{enumerate}\n')
+        else:
+            res.append (u'\n\\end{itemize}\n')
+
+        return res
+
+    def _html (self):
+        if self.ordered:
+            res = [u'<ol>']
+        else:
+            res = [u'<ul>']
+
+        for i in self.items:
+            res.append (u'\n<li>')
+            res += i._html ()
+            res.append (u'</li>')
+
+        if self.ordered:
+            res.append (u'\n</ol>\n')
+        else:
+            res.append (u'\n</ul>\n')
+
+        return res
+
+
 def render_latex (value):
     if isinstance (value, int):
         return unicode (value)
