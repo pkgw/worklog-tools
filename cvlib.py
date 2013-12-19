@@ -341,6 +341,17 @@ class HTMLToMarkupParser (HTMLParser):
             if url is None:
                 die ('no "href" attribute in HTML <a> tag')
             self.stack.append ((MupLink, tag, [], url))
+        elif tag in ('ol', 'ul'):
+            ordered = (tag == 'ol')
+            self.stack.append ((MupList, tag, [], ordered))
+        elif tag == 'li':
+            # We have some basic sanity-checking but are far from
+            # comprehensive. I.e., "<ol><b>..." is OK.
+            if len (self.stack) < 2:
+                die ('disallowed bare <li> in markup HTML')
+            if self.stack[-1][0] != MupList:
+                die ('disallowed <li> outside of list in markup HTML')
+            self.stack.append ((MupJoin, tag, []))
         else:
             die ('disallowed HTML tag "%s" when parsing markup', tag)
 
@@ -361,12 +372,18 @@ class HTMLToMarkupParser (HTMLParser):
             result = MupBold (_maybe_join (items))
         elif kind == MupLink:
             result = MupLink (info[3], _maybe_join (items))
+        elif kind == MupList:
+            result = MupList (info[3], items)
+        elif kind == MupJoin:
+            result = _maybe_join (items)
         else:
             assert False, 'bug in handle_endtag'
 
         self.stack[-1][2].append (result)
 
     def handle_data (self, data):
+        if not data.strip ():
+            return # whitespace between tags
         self.stack[-1][2].append (data)
 
     def finish (self):
@@ -650,19 +667,13 @@ def partition_pubs (pubs):
 
 # Commands for templates
 
-def cmd_today (context):
-    """Note the trailing period in the output."""
-    from time import time, localtime
-
-    # This is a little bit gross.
-    yr, mo, dy = localtime (time ())[:3]
-    text = '%s%s%d,%s%d.' % (months[mo - 1], nbsp, dy, nbsp, yr)
-    return context.render (text)
-
-
 def cmd_cite_stats (context, template):
     info = compute_cite_stats (context.pubgroups.all)
     return Formatter (context.render, False, slurp_template (template)) (info)
+
+
+def cmd_markup (context, template):
+    return context.render (html_to_markup (slurp_template (template)))
 
 
 def cmd_pub_list (context, group, template):
@@ -688,6 +699,16 @@ def cmd_rev_misc_list (context, sections, template):
         yield fmt (item)
 
 
+def cmd_today (context):
+    """Note the trailing period in the output."""
+    from time import time, localtime
+
+    # This is a little bit gross.
+    yr, mo, dy = localtime (time ())[:3]
+    text = '%s%s%d,%s%d.' % (months[mo - 1], nbsp, dy, nbsp, yr)
+    return context.render (text)
+
+
 # Driver
 
 def driver (template, render, datadir):
@@ -698,10 +719,11 @@ def driver (template, render, datadir):
     context.pubgroups = partition_pubs (context.pubs)
 
     commands = {}
-    commands['TODAY.'] = cmd_today
     commands['CITESTATS'] = cmd_cite_stats
+    commands['MARKUP'] = cmd_markup
     commands['PUBLIST'] = cmd_pub_list
     commands['RMISCLIST'] = cmd_rev_misc_list
+    commands['TODAY.'] = cmd_today
 
     for outline in process_template (template, commands, context):
         print outline.encode ('utf8')
