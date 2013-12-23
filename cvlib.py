@@ -303,7 +303,11 @@ class Formatter (object):
                 return text
             return self.renderer (text)
 
-        return self.renderer (item.get (text))
+        try:
+            return self.renderer (item.get (text))
+        except ValueError as e:
+            raise ValueError ('while rendering field "%s" of item %s: %s' \
+                              % (text, str (item).encode ('utf8'), e))
 
     def __call__ (self, item):
         return ''.join (self._handle_one (d, item) for d in self.tmplinfo)
