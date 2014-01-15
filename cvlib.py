@@ -588,7 +588,7 @@ def cite_info (item):
 
     if item.has ('doi'):
         info.official_link = MupLink ('http://dx.doi.org/' + urlquote (item.doi),
-                                      'preprint')
+                                      'official')
     else:
         info.official_link = u''
 
