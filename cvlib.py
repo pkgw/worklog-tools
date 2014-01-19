@@ -713,9 +713,9 @@ def cmd_today (context):
     return context.render (text)
 
 
-# Driver
+# Command-line driver
 
-def driver (template, render, datadir):
+def setup_processing (render, datadir):
     context = Holder ()
     context.render = render
     context.items = list (load (datadir))
@@ -729,23 +729,21 @@ def driver (template, render, datadir):
     commands['RMISCLIST'] = cmd_rev_misc_list
     commands['TODAY.'] = cmd_today
 
-    for outline in process_template (template, commands, context):
-        print outline.encode ('utf8')
+    return context, commands
 
 
-if __name__ == '__main__':
-    import sys
+def _cli_render (argv):
+    fmtname = argv[0]
 
-    if len (sys.argv) not in (3, 4):
-        die ('usage: {driver} <latex|html> <template> [datadir]')
+    if len (argv) not in (2, 3):
+        die ('usage: {driver} %s <template> [datadir]', fmtname)
 
-    fmtname = sys.argv[1]
-    tmpl = sys.argv[2]
+    tmpl = argv[1]
 
-    if len (sys.argv) < 4:
+    if len (argv) < 3:
         datadir = '.'
     else:
-        datadir = sys.argv[3]
+        datadir = argv[2]
 
     if fmtname == 'latex':
         render = render_latex
@@ -754,4 +752,26 @@ if __name__ == '__main__':
     else:
         die ('unknown output format "%s"', fmtname)
 
-    driver (tmpl, render, datadir)
+    context, commands = setup_processing (render, datadir)
+
+    for outline in process_template (tmpl, commands, context):
+        print outline.encode ('utf8')
+
+
+cli_latex = _cli_render
+cli_html = _cli_render
+
+
+if __name__ == '__main__':
+    import sys
+
+    if len (sys.argv) < 2:
+        die ('usage: {driver} <command> [args...]')
+
+    cmdname = sys.argv[1]
+    clicmd = globals ().get ('cli_' + cmdname)
+
+    if not callable (clicmd):
+        die ('unknown subcommand "%s"', cmdname)
+
+    clicmd (sys.argv[1:])
