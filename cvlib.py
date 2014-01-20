@@ -762,6 +762,23 @@ cli_latex = _cli_render
 cli_html = _cli_render
 
 
+def cli_extract (argv):
+    from inifile import write
+    import sys
+
+    if len (argv) not in (2, 3):
+        die ('usage: {driver} extract <section-name> [datadir]')
+
+    sectname = argv[1]
+
+    if len (argv) < 3:
+        datadir = '.'
+    else:
+        datadir = argv[2]
+
+    write (sys.stdout, (i for i in load (datadir) if i.section == sectname))
+
+
 if __name__ == '__main__':
     import sys
 
