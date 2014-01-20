@@ -411,13 +411,22 @@ def load (datadir='.'):
     from os.path import join
     from inifile import read as iniread
 
+    any = False
+
     for item in sorted (listdir (datadir)):
         if not item.endswith ('.txt'):
             continue
 
+        # Note that if there are text files that contain no record (e.g. all
+        # commented), we won't complain.
+        any = True
+
         path = join (datadir, item)
         for item in iniread (path):
             yield item
+
+    if not any:
+        die ('no data files found in directory "%s"', datadir)
 
 
 # Utilities for dealing with publications.
