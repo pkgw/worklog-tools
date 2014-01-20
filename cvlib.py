@@ -788,6 +788,26 @@ def cli_extract (argv):
     write (sys.stdout, (i for i in load (datadir) if i.section == sectname))
 
 
+def cli_summarize (argv):
+    if len (argv) not in (1, 2):
+        die ('usage: {driver} summarize [datadir]')
+
+    if len (argv) < 2:
+        datadir = '.'
+    else:
+        datadir = argv[1]
+
+    counts = {}
+    maxsectlen = 0
+
+    for i in load (datadir):
+        counts[i.section] = counts.get (i.section, 0) + 1
+        maxsectlen = max (maxsectlen, len (i.section))
+
+    for section, count in sorted (counts.iteritems ()):
+        print '% *s: %d' % (maxsectlen, section, count)
+
+
 if __name__ == '__main__':
     import sys
 
