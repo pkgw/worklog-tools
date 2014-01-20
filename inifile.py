@@ -43,6 +43,14 @@ class Holder (object):
         new = self.__class__ ()
         new.__dict__ = dict (self.__dict__)
         return new
+
+    def iteritems (self):
+        for k, v in self.__dict__.iteritems ():
+            if k[0] == '_':
+                continue
+            if v is None:
+                continue
+            yield k, v
 ## end
 
 import re, os
@@ -120,6 +128,32 @@ def read (stream_or_path):
     if isinstance (stream_or_path, basestring):
         return readStream (open (stream_or_path))
     return readStream (stream_or_path)
+
+
+def writeStream (stream, items):
+    """Note that we just dumbly stringify the item values. That's sufficient
+    for our limited purposes but not good in generality."""
+
+    first = True
+
+    for i in items:
+        if first:
+            first = False
+        else:
+            print >>stream
+
+        print >>stream, '[%s]' % i.section
+
+        for k, v in sorted (i.iteritems ()):
+            if k == 'section':
+                continue
+            print >>stream, k, '=', str (v)
+
+
+def write (stream_or_path, items):
+    if isinstance (stream_or_path, basestring):
+        return writeStream (open (stream_or_path, 'w'), items)
+    return writeStream (stream_or_path, items)
 
 
 # Parsing plus inline modification, preserving the file
