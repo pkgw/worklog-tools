@@ -674,6 +674,12 @@ def cmd_markup (context, template):
     return context.render (html_to_markup (slurp_template (template)))
 
 
+def cmd_format (context, *inline_template):
+    inline_template = ' '.join (inline_template)
+    context.cur_formatter = Formatter (context.render, True, inline_template)
+    return ''
+
+
 def cmd_pub_list (context, group, template):
     fmt = Formatter (context.render, True, slurp_template (template))
     pubs = context.pubgroups.get (group)
@@ -686,15 +692,17 @@ def cmd_pub_list (context, group, template):
         yield fmt (info)
 
 
-def cmd_rev_misc_list (context, sections, template):
-    fmt = Formatter (context.render, True, slurp_template (template))
+def cmd_rev_misc_list (context, sections):
+    if context.cur_formatter is None:
+        die ('cannot use RMISCLIST command before using FORMAT')
+
     sections = frozenset (sections.split (','))
 
     for item in context.items[::-1]:
         if item.section not in sections:
             continue
 
-        yield fmt (item)
+        yield context.cur_formatter (item)
 
 
 def cmd_today (context):
@@ -715,10 +723,12 @@ def setup_processing (render, datadir):
     context.items = list (load (datadir))
     context.pubs = [i for i in context.items if i.section == 'pub']
     context.pubgroups = partition_pubs (context.pubs)
+    context.cur_formatter = None
 
     commands = {}
     commands['CITESTATS'] = cmd_cite_stats
     commands['MARKUP'] = cmd_markup
+    commands['FORMAT'] = cmd_format
     commands['PUBLIST'] = cmd_pub_list
     commands['RMISCLIST'] = cmd_rev_misc_list
     commands['TODAY.'] = cmd_today
