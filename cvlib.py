@@ -291,8 +291,8 @@ class Formatter (object):
         try:
             return self.renderer (item.get (text))
         except ValueError as e:
-            raise ValueError ('while rendering field "%s" of item %s: %s' \
-                              % (text, str (item).encode ('utf8'), e))
+            raise ValueError ((u'while rendering field "%s" of item %s: %s' \
+                               % (text, item, e)).encode ('utf-8'))
 
     def __call__ (self, item):
         return ''.join (self._handle_one (d, item) for d in self.tmplinfo)
