@@ -698,17 +698,33 @@ def cmd_pub_list (context, group):
         yield context.cur_formatter (info)
 
 
-def cmd_rev_misc_list (context, sections):
+def _rev_misc_list (context, sections, gate):
     if context.cur_formatter is None:
-        die ('cannot use RMISCLIST command before using FORMAT')
+        die ('cannot use RMISCLIST* command before using FORMAT')
 
     sections = frozenset (sections.split (','))
 
     for item in context.items[::-1]:
         if item.section not in sections:
             continue
-
+        if not gate (item):
+            continue
         yield context.cur_formatter (item)
+
+
+def cmd_rev_misc_list (context, sections):
+    return _rev_misc_list (context, sections, lambda i: True)
+
+def cmd_rev_misc_list_if (context, sections, gatefield):
+    """Same a RMISCLIST, but only shows items where a certain item
+    is True. XXX: this kind of approach could get out of hand
+    quickly."""
+    return _rev_misc_list (context, sections,
+                           lambda i: i.get (gatefield, 'n') == 'y')
+
+def cmd_rev_misc_list_if_not (context, sections, gatefield):
+    return _rev_misc_list (context, sections,
+                           lambda i: i.get (gatefield, 'n') != 'y')
 
 
 def cmd_today (context):
@@ -737,6 +753,8 @@ def setup_processing (render, datadir):
     commands['FORMAT'] = cmd_format
     commands['PUBLIST'] = cmd_pub_list
     commands['RMISCLIST'] = cmd_rev_misc_list
+    commands['RMISCLIST_IF'] = cmd_rev_misc_list_if
+    commands['RMISCLIST_IF_NOT'] = cmd_rev_misc_list_if_not
     commands['TODAY.'] = cmd_today
 
     return context, commands
