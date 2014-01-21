@@ -440,6 +440,9 @@ def canonicalize_name (name):
     Williams". The returned string uses a nonbreaking space between the two
     pieces.
 
+    I handle spaces in surnames by replacing them with underscores. Hopefully
+    none of my coauthors will ever have an underscore in their names.
+
     TODO: handle "Surname, First Middle" etc.
     TODO: also Russian initials: Yu. G. Levin
     """
