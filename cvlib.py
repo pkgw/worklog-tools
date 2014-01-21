@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 # -*- mode: python ; coding: utf-8 -*-
 # Shared routines for my CV / publication-list tools.
 
