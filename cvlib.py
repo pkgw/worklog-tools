@@ -652,25 +652,40 @@ def partition_pubs (pubs):
     groups.all = []
     groups.refereed = []
     groups.non_refereed = []
+    groups.all_formal = []
+    groups.all_non_refereed = []
+    groups.informal = []
 
     for pub in pubs:
-        groups.all.append (pub)
+        refereed = (pub.refereed == 'y')
+        formal = (pub.get ('informal', 'n') == 'n')
+        # we assume refereed implies formal.
 
-        if pub.refereed == 'y':
+        groups.all.append (pub)
+        if formal:
+            groups.all_formal.append (pub)
+
+        if refereed:
             groups.refereed.append (pub)
         else:
-            groups.non_refereed.append (pub)
+            groups.all_non_refereed.append (pub)
+
+            if formal:
+                groups.non_refereed.append (pub)
+            else:
+                groups.informal.append (pub)
 
     groups.all_rev = groups.all[::-1]
     groups.refereed_rev = groups.refereed[::-1]
     groups.non_refereed_rev = groups.non_refereed[::-1]
+    groups.informal_rev = groups.informal[::-1]
     return groups
 
 
 # Commands for templates
 
 def cmd_cite_stats (context, template):
-    info = compute_cite_stats (context.pubgroups.all)
+    info = compute_cite_stats (context.pubgroups.all_formal)
     return Formatter (context.render, False, slurp_template (template)) (info)
 
 
