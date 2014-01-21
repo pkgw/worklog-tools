@@ -680,8 +680,10 @@ def cmd_format (context, *inline_template):
     return ''
 
 
-def cmd_pub_list (context, group, template):
-    fmt = Formatter (context.render, True, slurp_template (template))
+def cmd_pub_list (context, group):
+    if context.cur_formatter is None:
+        die ('cannot use PUBLIST command before using FORMAT')
+
     pubs = context.pubgroups.get (group)
     npubs = len (pubs)
 
@@ -689,7 +691,7 @@ def cmd_pub_list (context, group, template):
         info = cite_info (pub)
         info.number = num + 1
         info.rev_number = npubs - num
-        yield fmt (info)
+        yield context.cur_formatter (info)
 
 
 def cmd_rev_misc_list (context, sections):
