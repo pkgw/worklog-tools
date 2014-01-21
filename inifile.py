@@ -147,7 +147,7 @@ def writeStream (stream, items):
         for k, v in sorted (i.iteritems ()):
             if k == 'section':
                 continue
-            print >>stream, k, '=', str (v)
+            print >>stream, k, '=', unicode (v).encode ('utf-8')
 
 
 def write (stream_or_path, items):
