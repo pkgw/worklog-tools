@@ -1,23 +1,8 @@
 # -*- mode: python ; coding: utf-8 -*-
 # Shared routines for my CV / publication-list tools.
 
-
 nbsp = u'\u00a0'
-
 months = 'Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'.split ()
-
-titles = {
-    'ed': 'Education',
-    'fawards': 'Fellowships and Awards',
-    'train': 'Other Training',
-    'jobs': 'Employment',
-    'talks': 'Professional Talks',
-    'teach': 'Teaching',
-    'outreach': 'Outreach',
-    'refd': 'Refereed',
-    'unrefd': 'Non-Refereed',
-    'abs': 'Abstracts',
-}
 
 
 # Infrastructure
