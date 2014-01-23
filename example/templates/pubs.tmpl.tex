@@ -1,0 +1,79 @@
+% Peter Williams' LaTeX template for a list of publications.
+
+\documentclass[letterpaper,11pt]{article}
+
+% Basic settings for your convenience!
+
+\newcommand{\myname}{Peter K. G. Williams}
+\newcommand{\mysite}{http://newton/cx/~peter/}
+
+% Here begins a ton of boilerplate to set up the document to look nice.
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% margins
+\usepackage[margin=0.5in,bottom=0.75in]{geometry}
+
+% nice links
+\usepackage[colorlinks,urlcolor=blue]{hyperref}
+\urlstyle{sf}
+
+% needed for the fancy footer
+\usepackage{fancyhdr,lastpage} 
+
+% layout of the publication list
+\usepackage{enumitem}
+\newenvironment{publist}{
+  \begingroup
+  \raggedright
+  \begin{description}[leftmargin=4ex,style=sameline]
+}{
+  \end{description}
+  \endgroup
+}
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% That's the end of the boilerplate. Now come some things that don't involve
+% any templating.
+
+\begin{document}
+
+% running footer
+\pagestyle{fancy}
+\lhead{} \chead{} \rhead{} \renewcommand{\headrule}{\relax}
+\lfoot{\textsc{List of Publications}}
+\cfoot{\thepage/\pageref*{LastPage}}
+\rfoot{\textsc{\myname}}
+
+% title
+\begin{center}
+\textbf{\Large \myname} \\
+{\large Publications}
+\end{center}
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Here's where we actually start using the templates.
+
+\noindent Updated % note: must have this awkward newline for the simpleminded templater:
+TODAY.
+The most recent version of this list may be found online at
+\url{\mysite}.
+CITESTATS citestats.frag.txt
+
+This sample list is incomplete!
+
+\section*{Refereed}
+
+FORMAT \item[|rev_number|.] |full_authors|. \textit{``|quotable_title|.''} |vcite||citecountnote|.
+
+\begin{publist}
+PUBLIST refereed_rev
+\end{publist}
+
+\section*{Non-Refereed}
+
+\begin{publist}
+PUBLIST non_refereed_rev
+\end{publist}
+
+\end{document}

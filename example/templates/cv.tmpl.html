@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+
+<!-- Peter Williams' HTML CV template
+
+Unlike the LaTeX template, I can't use variables to parametrize my name and
+info. I've marked text that needs updating with "XXX" comments.
+
+I also haven't spent as much time beautifying this page as I have the LaTeX
+templates. My actual CV is embedded in a Wordpress site that does a bunch of
+the CSS fanciness automatically, and it'd be a lot of work to extract all of
+that magic. -->
+
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Peter Williams: Curriculum vitae</title> <!--XXX-->
+    <style type="text/css" media="all">
+#container { width: 80%; margin: auto; }
+.cv { border-collapse: collapse; }
+.cv tr { vertical-align: top; }
+.cv td { padding-bottom: 10px; color: rgb(68, 68, 68); font-size: 1rem; }
+.cv_spec { width: 17ex; }
+.cv_inst { font-style: italic; }
+.cv_title { font-style: italic; }
+p.pwcv_ref { text-indent: -3ex; margin-left: 3ex; }
+a.pwcv_pub:visited, a.pwcv_pub:link { text-decoration: none; }
+a.pwcv_pub:hover { text-decoration: underline; }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <h1>Peter Williams: Curriculum vitae</h1> <!--XXX-->
+
+      <p>Updated
+TODAY.
+</p>
+
+      <h3>Contact Information</h3>
+
+      <table class="cv">
+	<col class="cv_spec" /> <col class="cv_content" />
+	<!-- XXX obviously all the contact info needs customization ... -->
+	<tr>
+	  <td>Email</td>
+	  <td><span class="cv_email"><a href="mailto:pwilliams@cfa.harvard.edu">pwilliams@cfa.harvard.edu</a></span></td>
+	</tr><tr>
+	  <td>Mobile</td>
+	  <td>+1 617 922 2689</td>
+	</tr><tr>
+	  <td>Post</td>
+	  <td>Harvard-Smithsonian Center for Astrophysics<br>
+	    60 Garden St. MS-20<br>
+	    Cambridge, MA 01238</td>
+	</tr>
+      </table>
+
+      <h3>Education</h3>
+      <table class="cv">
+	<col class="cv_spec" /> <col class="cv_content" />
+	<!-- Entered manually to get extra PhD info simply. -->
+	<tr>
+	  <td>2012</td>
+	  <td><i>University of California, Berkeley</i><br>
+	    Ph.D. (Astrophysics) <br>
+	    Dissertation: <a href="http://newton.cx/~peter/dissertation/">“Exploring
+	      the Dynamic Radio Sky with the Allen Telescope Array”</a>
+	    (adviser: Geoff Bower)</td>
+	</tr><tr>
+	  <td>2008</td>
+	  <td><i>University of California, Berkeley</i><br>
+	    M.A. (Astrophysics)</td>
+	</tr><tr>
+	  <td>2006</td>
+	  <td><i>Harvard College</i><br>
+	    B.A. (Astronomy &amp; Astrophysics and Physics) with honors,
+	    magna cum laude</td>
+	</tr>
+      </table>
+
+FORMAT <tr><td>|date|</td><td><i>|where|</i><br>|what|</td></tr>
+
+      <h3>Employment</h3>
+      <table class="cv">
+	<col class="cv_spec" /> <col class="cv_content" />
+RMISCLIST job
+      </table>
+
+      <h3>Fellowships and Awards</h3>
+      <table class="cv">
+	<col class="cv_spec" /> <col class="cv_content" />
+RMISCLIST award
+      </table>
+
+      <!-- XXX ditto for these ... -->
+      <h3>Research Interests</h3>
+      <ul>
+	<li>Magnetic activity of low-mass stars and brown dwarfs</li>
+	<li>The dynamic radio sky: overall properties, known and potential sources,
+	  surveys</li>
+	<li>Radio interferometric software, analysis and techniques</li>
+      </ul>
+
+      <h3>Observing Experience</h3>
+      <ul>
+	<li>Centimeter radio interferometry (Allen Telescope Array, VLA)</li>
+	<li>X-ray and UV imaging (<i>Chandra</i>, <i>Swift</i>)</li>
+	<li>Optical imaging and spectroscopy (CTIO/Blanco&nbsp;4m, Lick/Shane&nbsp;3m,
+	  Lick/Nickel&nbsp;1m, Lick/CAT&nbsp;1m)</li>
+      </ul>
+
+FORMAT <tr><td>|date|</td><td><i>|where|</i><br>“|what|”</td></tr>
+
+      <h3>Professional Talks — Invited</h3>
+      <table class="cv">
+	<col class="cv_spec" /> <col class="cv_content" />
+RMISCLIST_IF talk invited
+      </table>
+
+      <h3>Professional Talks — Other</h3>
+      <table class="cv">
+	<col class="cv_spec" /> <col class="cv_content" />
+RMISCLIST_IF_NOT talk invited
+      </table>
+
+FORMAT <tr><td>|date|</td><td><i>|where|</i><br>|what|</td></tr>
+
+      <h3>Teaching</h3>
+      <table class="cv">
+	<col class="cv_spec" /> <col class="cv_content" />
+RMISCLIST teaching
+      </table>
+
+FORMAT <tr><td>|date|</td><td>|what|</td></tr>
+
+      <h3>Outreach</h3>
+      <table class="cv">
+	<col class="cv_spec" /> <col class="cv_content" />
+RMISCLIST outreach
+      </table>
+    </div>
+  </body>
+</html>

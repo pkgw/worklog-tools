@@ -1,0 +1,135 @@
+# -*- conf -*-
+
+[job]
+date = 2006–2012
+where = University of California, Berkeley
+what = Graduate student
+
+[outreach]
+date = 2007–2012
+what = Participant, annual UCB “Cal Day” open house activities for Department of Astronomy
+
+[outreach]
+date = 2010–2012
+what = Webmaster, Berkeley’s “Science@Cal” outreach program
+
+[talk]
+date = 2012 Jan
+where = "At AAS Meeting #219 (Austin, USA)"
+what = AGILITE: An ATA Survey to Characterize the Population of
+  Galactic Radio Transients and Variables
+bibcode = 2012AAS...21931902W
+invited = n
+adscites = 2013/12/18 0
+
+[pub]
+kind = memo
+title = The ATA Commensal Observing System
+pubdate = 2012/01
+bibcode = 2012arXiv1201.5413W
+arxiv = 1201.5413
+series = Allen Telescope Array Memo Series
+itemid = 89
+authors = Peter K. G. Williams
+mypos = 1
+refereed = n
+pages = 22
+url = http://ral.berkeley.edu/ata/memos/memo89.pdf
+adscites = 2013/12/18 0
+
+[prop]
+title = The Topology of Magnetic Fields and Coronae at the Bottom
+  of the Main Sequence
+date = 2012/03
+pi = Edo Berger
+cois = Peter Williams
+org = NASA/Chandra
+id = 14200124
+request = 36 ks
+mepi = n
+accepted = y
+
+[prop]
+title = Are Convective Dynamos Super-Saturated at High Rotation
+  Velocities?
+date = 2012/03
+pi = Edo Berger
+cois = Peter Williams
+org = NASA/Chandra
+# id =
+request = 120 ks
+mepi = n
+accepted = n
+
+[prop]
+title = Probing down the jet of a Galactic Black Hole
+date = 2012/05
+pi = Anthony Rushton
+cois = Geoffrey Bower; Peter K. G. Williams; Casey Law;
+  James Miller-Jones; Phil Uttley; Ralph Spencer;
+  Valeriu Tudose; Jörn Wilms
+org = CARMA
+id = c0989
+request = 60 hr
+mepi = n
+accepted = y
+
+[pub]
+title = Rapid Development of Interferometric Software Using MIRIAD and Python
+pubdate = 2012/06
+bibcode = 2012PASP..124..624W
+doi = 10.1086/666604
+arxiv = 1203.0330
+yjvp = 2012/PASP/124/624
+issue = 916
+pages = 13
+authors = Peter K. G. Williams; Casey J. Law; Geoffrey C. Bower
+mypos = 1
+refereed = y
+adscites = 2013/12/18 4
+
+# No (expected) corresponding proceedings item:
+# [pub]
+# kind = poster
+# title = Radio and X-Ray Studies of Magnetic Activity at the Bottom
+#  of the Main Sequence
+# pubdate = 2012/10
+# authors = Peter K. G. Williams; Edo Berger; Margaret McLean
+# mypos = 1
+# refereed = n
+# url = https://www.cfa.harvard.edu/~pwilliam/williams_2012_bd50th_poster.pdf
+# tempstatus = presented at “50 Years of Brown Dwarfs: from Theoretical
+#   Prediction to Astrophysical Studies” (Ringberg Castle, Bavaria, Germany)
+
+[talk]
+date = 2012 Nov
+where = CfA postdoctoral symposium, Harvard/Smithsonian Center
+  for Astrophysics
+what = ASGARD: A Large Survey for Galactic Radio Transients
+invited = n
+
+[prop]
+title = The Variability and Spectrum of the Coolest Radio-Active
+  Brown Dwarf
+date = 2012/11
+pi = Peter K. G. Williams
+cois = Edo Berger; Bevin Zauderer; Matthew Route; Alex Wolszczan
+org = NRAO/VLA
+id = VLA/12B-400
+nraolegacyid = AW850
+request = 6 hr
+mepi = y
+accepted = n # conflicted with regular proposal
+
+[prop]
+title = Probing down the jet of a Galactic Black Hole
+date = 2012/12
+pi = Anthony Rushton
+cois = Geoffrey Bower; Peter K. G. Williams; Casey Law;
+  James Miller-Jones; Phil Uttley; Ralph Spencer;
+  Valeriu Tudose; Jörn Wilms; Tom Maccarone
+org = CARMA
+id = c1115
+request = 60 hr
+mepi = n
+accepted = y

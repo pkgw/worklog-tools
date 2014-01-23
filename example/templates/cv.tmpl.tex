@@ -1,0 +1,171 @@
+% Peter Williams' LaTeX CV template.
+
+\documentclass[letterpaper,11pt]{article}
+
+% Basic settings for your convenience!
+
+\newcommand{\myname}{Peter K. G. Williams}
+\newcommand{\myaffil}{Harvard-Smithsonian Center for Astrophysics}
+\newcommand{\myemail}{pwilliams@cfa.harvard.edu}
+\newcommand{\mypostlineone}{60 Garden St. MS-20}
+\newcommand{\mypostlinetwo}{Cambridge, MA 02138}
+\newcommand{\mysite}{http://newton/cx/~peter/}
+\newcommand{\mymobile}{+1 617 922 2689}
+
+% Here begins a ton of boilerplate to set up the document to look nice.
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% margins
+\usepackage[margin=0.5in,bottom=0.75in]{geometry}
+
+% nice links
+\usepackage[colorlinks,urlcolor=blue]{hyperref}
+\urlstyle{sf}
+
+% needed for the fancy footer
+\usepackage{fancyhdr,lastpage}
+
+% I find that things look better this way.
+\linespread{0.85}
+
+% Layout. Very little comes in bare paragraphs. Most of the content is in
+% lists, and we use enumitem to control the spacing.
+
+\usepackage{enumitem}
+
+\setlength{\parindent}{0pt}
+\newlength{\mainindent} \setlength{\mainindent}{12pt}
+\newlength{\contentindent} \setlength{\contentindent}{19ex}
+
+\setlist[itemize]{nosep}
+
+\newenvironment{datelist}{
+  \begingroup
+  \raggedright
+  \begin{description}[labelindent=\mainindent,leftmargin=\contentindent,
+      style=sameline,font=\normalfont,topsep=0pt,partopsep=0pt,parsep=0pt,
+      itemsep=4pt]
+}{
+  \end{description}
+  \endgroup
+}
+
+% Customize font / spacing of section titles
+\usepackage[nobottomtitles*]{titlesec}
+\renewcommand{\bottomtitlespace}{0.1\textheight}
+\titleformat{\section}{\normalfont\large\bfseries}{\thesection}{1em}{}
+\titlespacing*{\section}{0pt}{2.5ex plus 1ex minus 0.2ex}{1ex plus 0.2ex}
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% That's the end of the boilerplate. Now come some things that don't involve
+% any templating.
+
+\begin{document}
+
+% running footer
+\pagestyle{fancy}
+\lhead{} \chead{} \rhead{} \renewcommand{\headrule}{\relax}
+\lfoot{\textsc{Curriculum Vit\ae}}
+\cfoot{\thepage/\pageref*{LastPage}}
+\rfoot{\textsc{\myname}}
+
+% title
+\begin{center}
+\textbf{\Large \myname} \\
+{\large Curriculum Vit\ae}
+\end{center}
+
+\medskip
+
+% contact info, TeXified as a table
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lr}
+\myaffil &
+ \textsf{\href{mailto:\myemail}{\myemail}} \\
+\mypostlineone &
+ \url{\mysite} \\
+\mypostlinetwo &
+ Mobile: \mymobile
+\end{tabular*}
+
+\medskip
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Here's where we actually start using the templates.
+
+Updated % note: must have this awkward newline for the simpleminded templater:
+TODAY.
+The latest version of this document is online at the website listed above.
+
+\section*{Education}
+\begin{datelist}
+% This is entered manually to get the extra PhD info. It's not like this list
+% is expected to change ...
+\item[2012]
+  \emph{University of California, Berkeley} \\
+  Ph.D. (Astrophysics) \\
+  Dissertation: \href{http://newton.cx/~peter/dissertation/}{``Exploring the
+    Dynamic Radio Sky with the Allen Telescope Array''} \\
+  Adviser: Geoff Bower
+\item[2008]
+  \emph{University of California, Berkeley} \\
+  M.A. (Astrophysics)
+\item[2006]
+  \emph{Harvard College} \\
+  B.A. (Astronomy \& Astrophysics and Physics) with honors, magna cum laude
+\end{datelist}
+
+FORMAT \item[|date|] \emph{|where|} \\ |what|
+
+\section*{Employment}
+\begin{datelist}
+RMISCLIST job
+\end{datelist}
+
+\section*{Fellowships and Awards}
+\begin{datelist}
+RMISCLIST award
+\end{datelist}
+
+\section*{Research Interests}
+\begin{itemize}
+\item Magnetic activity of low-mass stars and brown dwarfs
+\item The dynamic radio sky: overall properties, known and potential sources,
+    surveys
+\item Radio interferometric software, analysis and techniques
+\end{itemize}
+
+\section*{Observing Experience}
+\begin{itemize}
+\item Centimeter radio interferometry (Allen Telescope Array, VLA)
+\item X-ray and UV imaging (\textit{Chandra}, \textit{Swift})
+\item Optical imaging and spectroscopy (CTIO/Blanco~4m, Lick/Shane~3m,
+    Lick/Nickel~1m, Lick/CAT~1m)
+\end{itemize}
+
+FORMAT \item[|date|] \emph{|where|} \\ ``|what|''
+
+\section*{Professional Talks --- Invited}
+\begin{datelist}
+RMISCLIST_IF talk invited
+\end{datelist}
+
+\section*{Professional Talks --- Other}
+\begin{datelist}
+RMISCLIST_IF_NOT talk invited
+\end{datelist}
+
+FORMAT \item[|date|] \emph{|where|} \\ |what|
+
+\section*{Teaching}
+\begin{datelist}
+RMISCLIST teaching
+\end{datelist}
+
+FORMAT \item[|date|] |what|
+
+\section*{Outreach}
+\begin{datelist}
+RMISCLIST outreach
+\end{datelist}
+
+\end{document}

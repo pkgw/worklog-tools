@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+
+<!-- Peter Williams' HTML template for a publications list
+
+Unlike the LaTeX template, I can't use variables to parametrize my name and
+info. I've marked text that needs updating with "XXX" comments.
+
+Note that this list looks significantly different than the PDF publication
+list. I feel that on the web it makes sense to take a different approach.
+
+I also haven't spent as much time beautifying this page as I have the LaTeX
+templates. My actual publication list is embedded in a Wordpress site that
+does a bunch of the CSS fanciness automatically, and it'd be a lot of work to
+extract all of that magic. -->
+
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Peter Williams: Publications</title> <!--XXX-->
+    <style type="text/css" media="all">
+#container { width: 80%; margin: auto; }
+#pwpubs { border-collapse: collapse; }
+#pwpubs tr { vertical-align: top; border-top: 1px #777 solid; }
+#pwpubs td { padding-bottom: 10px; }
+#pwpubs_date { width: 12ex; }
+#pwpubs_ref { width: 2ex; }
+#pwpubs td.tauth { padding-right: 2ex; }
+#pwpubs_ads, #pwpubs_arxiv, #pwpubs_doi, #pwpubs_direct { width: 10ex; }
+.pwpubs_title { font-size: larger; }
+.pwpubs_ftitle { font-size: larger; font-weight: bold; }
+.pwpubs_auth { font-style: italic; }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <p>Below is an list of my publications, updated as of
+TODAY.
+      First-author works have their <span style="font-weight: bold">titles in
+      bold</span>; refereed works are marked with a guillemet (»).
+      My <a href="/cv.html">full CV</a> is also online.
+CITESTATS citestats.frag.txt
+      </p>
+
+<!-- well this is less than ideal, but whatever. -->
+FORMAT <tr><td>|pubdate|</td><td>|refereed_mark|</td><td class="pwpubs_tauth"><span class="pwpubs_title">|bold_if_first_title|</span> <br><span class="pwpubs_auth">|short_authors|</span> • |icite|</td><td>|abstract_link|</td><td>|preprint_link|</td><td>|official_link|</td><td>|other_link|</td></tr>
+
+      <table id="pwpubs">
+	<col id="pwpubs_date" /> <col id="pwpubs_ref" /> <col id="pwpubs_tauth" />
+	<col id="pwpubs_ads" /> <col id="pwpubs_arxiv" /> <col id="pwpubs_doi" /> <col id="pwpubs_direct" />
+PUBLIST all_rev
+      </table>
+
+    </div>
+  </body>
+</html>
