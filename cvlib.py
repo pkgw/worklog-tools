@@ -533,8 +533,6 @@ def cite_info (item):
     # Verbose citation contents -- a big complicated one.
     if item.has ('yjvi'):
         info.vcite = ', '.join (item.yjvi.split ('/'))
-    elif item.has ('yjvp'):
-        info.vcite = ', '.join (item.yjvp.split ('/'))
     elif item.has ('bookref') and item.has ('posid'):
         # Proceedings of Science
         info.vcite = '%d, in %s, %s' % (info.year, item.bookref, item.posid)
@@ -554,8 +552,6 @@ def cite_info (item):
     # Informal citation contents, without year.
     if item.has ('yjvi'):
         info.icite = ' '.join (item.yjvi.split ('/')[1:])
-    elif item.has ('yjvp'):
-        info.icite = ' '.join (item.yjvp.split ('/')[1:])
     elif item.has ('bookref') and item.has ('posid'):
         # Proceedings of Science
         info.icite = '%s (%s)' % (item.bookref, item.posid)

@@ -415,7 +415,7 @@ pubdate = 2013/12
 bibcode = 2013MmSAI..84.1122W
 # no DOI, no arxiv.
 url = http://sait.oat.ts.astro.it/MSAIt840413/PDF/2013MmSAI..84.1122K.pdf
-yjvp = 2013/MmSAI/84/1122
+yjvi = 2013/MmSAI/84/1122
 issue = 4
 pages = 5
 authors = P. K. G. Williams
