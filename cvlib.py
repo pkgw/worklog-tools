@@ -467,28 +467,25 @@ def cite_info (item, context):
     # Other links for the web pub list
     from urllib2 import quote as urlquote
 
+    info.abstract_link = u''
+    info.preprint_link = u''
+    info.official_link = u''
+    info.other_link = u''
+
     if item.has ('bibcode'):
         info.abstract_link = MupLink ('http://adsabs.harvard.edu/abs/' + urlquote (item.bibcode),
                                       'abstract')
-    else:
-        info.abstract_link = u''
 
     if item.has ('arxiv'):
         info.preprint_link = MupLink ('http://arxiv.org/abs/' + urlquote (item.arxiv),
                                       'preprint')
-    else:
-        info.preprint_link = u''
 
     if item.has ('doi'):
         info.official_link = MupLink ('http://dx.doi.org/' + urlquote (item.doi),
                                       'official')
-    else:
-        info.official_link = u''
 
     if item.has ('url') and not item.has ('doi'):
         info.other_link = MupLink (item.url, item.kind)
-    else:
-        info.other_link = u''
 
     return info
 
