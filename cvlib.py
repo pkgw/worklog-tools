@@ -478,7 +478,7 @@ def best_url (item):
     return None
 
 
-def cite_info (item):
+def cite_info (item, context):
     """Create a Holder with citation text from a publication item. This can then
     be fed into a template however one wants. The various computed fields are
     are Unicode or Markups."""
@@ -492,9 +492,10 @@ def cite_info (item):
     cauths[i] = MupBold (cauths[i])
     info.full_authors = MupJoin (', ', cauths)
 
-    # Short list of authors, with self as 'PKGW'.
+    # Short list of authors, possibly abbreviating my name.
     sauths = [surname (a) for a in item.authors.split (';')]
-    sauths[i] = 'PKGW'
+    if context.my_abbrev_name is not None:
+        sauths[i] = context.my_abbrev_name
 
     if len (sauths) == 1:
         info.short_authors = sauths[0]
@@ -674,13 +675,18 @@ def cmd_cite_stats (context, template):
     return Formatter (context.render, False, slurp_template (template)) (info)
 
 
+def cmd_format (context, *inline_template):
+    inline_template = ' '.join (inline_template)
+    context.cur_formatter = Formatter (context.render, True, inline_template)
+    return ''
+
+
 def cmd_markup (context, template):
     return context.render (html_to_markup (slurp_template (template)))
 
 
-def cmd_format (context, *inline_template):
-    inline_template = ' '.join (inline_template)
-    context.cur_formatter = Formatter (context.render, True, inline_template)
+def cmd_my_abbrev_name (context, *text):
+    context.my_abbrev_name = ' '.join (text)
     return ''
 
 
@@ -692,7 +698,7 @@ def cmd_pub_list (context, group):
     npubs = len (pubs)
 
     for num, pub in enumerate (pubs):
-        info = cite_info (pub)
+        info = cite_info (pub, context)
         info.number = num + 1
         info.rev_number = npubs - num
         yield context.cur_formatter (info)
@@ -746,11 +752,13 @@ def setup_processing (render, datadir):
     context.pubs = [i for i in context.items if i.section == 'pub']
     context.pubgroups = partition_pubs (context.pubs)
     context.cur_formatter = None
+    context.my_abbrev_name = None
 
     commands = {}
     commands['CITESTATS'] = cmd_cite_stats
-    commands['MARKUP'] = cmd_markup
     commands['FORMAT'] = cmd_format
+    commands['MARKUP'] = cmd_markup
+    commands['MYABBREVNAME'] = cmd_my_abbrev_name
     commands['PUBLIST'] = cmd_pub_list
     commands['RMISCLIST'] = cmd_rev_misc_list
     commands['RMISCLIST_IF'] = cmd_rev_misc_list_if
