@@ -530,39 +530,29 @@ def cite_info (item):
     else:
         info.citecountnote = u''
 
-    # Verbose citation contents -- a big complicated one.
+    # Citation contents -- a big complicated one. They come in verbose and
+    # informal styles.
     if item.has ('yjvi'):
         info.vcite = ', '.join (item.yjvi.split ('/'))
+        info.icite = ' '.join (item.yjvi.split ('/')[1:])
     elif item.has ('bookref') and item.has ('posid'):
         # Proceedings of Science
         info.vcite = '%d, in %s, %s' % (info.year, item.bookref, item.posid)
+        info.icite = '%s (%s)' % (item.bookref, item.posid)
     elif item.has ('series') and item.has ('itemid'):
         # Various numbered series.
         info.vcite = '%d, %s, #%s' % (info.year, item.series, item.itemid)
+        info.icite = '%s #%s' % (item.series, item.itemid)
     elif item.has ('tempstatus'):
         # "in prep"-type items with temporary, manually-set info
         info.vcite = item.tempstatus
+        info.icite = item.tempstatus
     else:
         die ('no citation information for %s', item)
 
     url = best_url (item)
     if url is not None:
         info.vcite = MupLink (url, info.vcite)
-
-    # Informal citation contents, without year.
-    if item.has ('yjvi'):
-        info.icite = ' '.join (item.yjvi.split ('/')[1:])
-    elif item.has ('bookref') and item.has ('posid'):
-        # Proceedings of Science
-        info.icite = '%s (%s)' % (item.bookref, item.posid)
-    elif item.has ('series') and item.has ('itemid'):
-        # Various numbered series.
-        info.icite = '%s #%s' % (item.series, item.itemid)
-    elif item.has ('tempstatus'):
-        # "in prep"-type items with temporary, manually-set info
-        info.icite = item.tempstatus
-    else:
-        die ('no citation information for %s', item)
 
     # Other links for the web pub list
     from urllib2 import quote as urlquote
