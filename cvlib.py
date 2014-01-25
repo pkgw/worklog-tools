@@ -298,97 +298,6 @@ class Formatter (object):
         return ''.join (self._handle_one (d, item) for d in self.tmplinfo)
 
 
-# And, conversely, we use a simple HTML parser to deserialize markup trees
-# from template text.
-
-from HTMLParser import HTMLParser # note: renamed to html.parser in Py 3.
-
-def _maybe_join (items):
-    if not len (items):
-        return MupText (u'')
-    if len (items) == 1:
-        return items[0]
-    return MupJoin (u'', items)
-
-
-class HTMLToMarkupParser (HTMLParser):
-    def reset (self):
-        # super() doesn't work here for weird reasons
-        HTMLParser.reset (self)
-        self.stack = [(MupJoin, '', [])]
-
-    def handle_starttag (self, tag, attrs):
-        if tag == 'i':
-            self.stack.append ((MupItalics, tag, []))
-        elif tag == 'b':
-            self.stack.append ((MupBold, tag, []))
-        elif tag == 'a':
-            url = None
-            for aname, aval in attrs:
-                if aname == 'href':
-                    url = aval
-            if url is None:
-                die ('no "href" attribute in HTML <a> tag')
-            self.stack.append ((MupLink, tag, [], url))
-        elif tag in ('ol', 'ul'):
-            ordered = (tag == 'ol')
-            self.stack.append ((MupList, tag, [], ordered))
-        elif tag == 'li':
-            # We have some basic sanity-checking but are far from
-            # comprehensive. I.e., "<ol><b>..." is OK.
-            if len (self.stack) < 2:
-                die ('disallowed bare <li> in markup HTML')
-            if self.stack[-1][0] != MupList:
-                die ('disallowed <li> outside of list in markup HTML')
-            self.stack.append ((MupJoin, tag, []))
-        else:
-            die ('disallowed HTML tag "%s" when parsing markup', tag)
-
-    def handle_endtag (self, tag):
-        if len (self.stack) < 2:
-            die ('endtag "%s" without starttag?', tag)
-
-        info = self.stack.pop ()
-        kind, sttag, items = info[:3]
-
-        if tag != sttag:
-            die ('mismatching start (%s) and end (%s) tags in HTML',
-                 sttag, tag)
-
-        if kind == MupItalics:
-            result = MupItalics (_maybe_join (items))
-        elif kind == MupBold:
-            result = MupBold (_maybe_join (items))
-        elif kind == MupLink:
-            result = MupLink (info[3], _maybe_join (items))
-        elif kind == MupList:
-            result = MupList (info[3], items)
-        elif kind == MupJoin:
-            result = _maybe_join (items)
-        else:
-            assert False, 'bug in handle_endtag'
-
-        self.stack[-1][2].append (result)
-
-    def handle_data (self, data):
-        if not data.strip ():
-            return # whitespace between tags
-        self.stack[-1][2].append (data)
-
-    def finish (self):
-        if len (self.stack) != 1:
-            die ('unfinished tags in HTML parse')
-
-        kind, _, items = self.stack[0]
-        return _maybe_wrap_text (_maybe_join (items))
-
-
-def html_to_markup (text):
-    p = HTMLToMarkupParser ()
-    p.feed (text)
-    return p.finish ()
-
-
 # Loading up the data
 
 def load (datadir='.'):
@@ -681,10 +590,6 @@ def cmd_format (context, *inline_template):
     return ''
 
 
-def cmd_markup (context, template):
-    return context.render (html_to_markup (slurp_template (template)))
-
-
 def cmd_my_abbrev_name (context, *text):
     context.my_abbrev_name = ' '.join (text)
     return ''
@@ -757,7 +662,6 @@ def setup_processing (render, datadir):
     commands = {}
     commands['CITESTATS'] = cmd_cite_stats
     commands['FORMAT'] = cmd_format
-    commands['MARKUP'] = cmd_markup
     commands['MYABBREVNAME'] = cmd_my_abbrev_name
     commands['PUBLIST'] = cmd_pub_list
     commands['RMISCLIST'] = cmd_rev_misc_list
