@@ -50,7 +50,7 @@ def slurp_template (stem):
         return f.read ().decode ('utf8')
 
 
-def process_template (stem, commands, context):
+def process_template (stream, commands, context):
     """Read through a template line-by-line and replace special lines. Each
     regular line is yielded to the caller. `commands` is a dictionary of
     strings to callables; if the first word in a line is in `commands`, the
@@ -58,20 +58,19 @@ def process_template (stem, commands, context):
     arguments. Its return value is either a string or an iterable, with each
     iterate being yielded to the caller in the latter case."""
 
-    with open_template (stem) as f:
-        for line in f:
-            line = line.decode ('utf8').rstrip ()
-            a = line.split ()
+    for line in stream:
+        line = line.decode ('utf8').rstrip ()
+        a = line.split ()
 
-            if not len (a) or a[0] not in commands:
-                yield line
+        if not len (a) or a[0] not in commands:
+            yield line
+        else:
+            result = commands[a[0]] (context, *a[1:])
+            if isinstance (result, basestring):
+                yield result
             else:
-                result = commands[a[0]] (context, *a[1:])
-                if isinstance (result, basestring):
-                    yield result
-                else:
-                    for subline in result:
-                        yield subline
+                for subline in result:
+                    yield subline
 
 
 # Text formatting. We have a tiny DOM-type system for markup so we can
@@ -797,8 +796,9 @@ def _cli_render (argv):
 
     context, commands = setup_processing (render, datadir)
 
-    for outline in process_template (tmpl, commands, context):
-        print outline.encode ('utf8')
+    with open (tmpl) as f:
+        for outline in process_template (f, commands, context):
+            print outline.encode ('utf8')
 
 
 cli_latex = _cli_render
