@@ -387,107 +387,111 @@ def best_url (item):
     return None
 
 
-def cite_info (item, context):
+def cite_info (oitem, context):
     """Create a Holder with citation text from a publication item. This can then
     be fed into a template however one wants. The various computed fields are
-    are Unicode or Markups."""
+    are Unicode or Markups.
 
-    info = item.copy ()
+    `oitem` = original item; not to be modified
+    `aitem` = augmented item; = oitem + new fields
+    """
+
+    aitem = oitem.copy ()
 
     # Canonicalized authors with highlighting of self.
-    cauths = [canonicalize_name (a) for a in item.authors.split (';')]
+    cauths = [canonicalize_name (a) for a in oitem.authors.split (';')]
 
-    i = int (item.mypos) - 1
+    i = int (oitem.mypos) - 1
     cauths[i] = MupBold (cauths[i])
-    info.full_authors = MupJoin (', ', cauths)
+    aitem.full_authors = MupJoin (', ', cauths)
 
     # Short list of authors, possibly abbreviating my name.
-    sauths = [surname (a) for a in item.authors.split (';')]
+    sauths = [surname (a) for a in oitem.authors.split (';')]
     if context.my_abbrev_name is not None:
         sauths[i] = context.my_abbrev_name
 
     if len (sauths) == 1:
-        info.short_authors = sauths[0]
+        aitem.short_authors = sauths[0]
     elif len (sauths) == 2:
-        info.short_authors = ' & '.join (sauths)
+        aitem.short_authors = ' & '.join (sauths)
     elif len (sauths) == 3:
-        info.short_authors = ', '.join (sauths)
+        aitem.short_authors = ', '.join (sauths)
     else:
-        info.short_authors = sauths[0] + ' et' + nbsp + 'al.'
+        aitem.short_authors = sauths[0] + ' et' + nbsp + 'al.'
 
-    if item.refereed == 'y':
-        info.refereed_mark = u'»'
+    if oitem.refereed == 'y':
+        aitem.refereed_mark = u'»'
     else:
-        info.refereed_mark = u''
+        aitem.refereed_mark = u''
 
     # Title with replaced quotes, for nesting in double-quotes, and
     # optionally-bolded for first authorship.
-    info.quotable_title = item.title.replace (u'“', u'‘').replace (u'”', u'’')
+    aitem.quotable_title = oitem.title.replace (u'“', u'‘').replace (u'”', u'’')
 
     if i == 0:
-        info.bold_if_first_title = MupBold (item.title)
+        aitem.bold_if_first_title = MupBold (oitem.title)
     else:
-        info.bold_if_first_title = item.title
+        aitem.bold_if_first_title = oitem.title
 
     # Pub year and nicely-formatted date
-    info.year, info.month = map (int, item.pubdate.split ('/'))
-    info.pubdate = u'%d%s%s' % (info.year, nbsp, months[info.month - 1])
+    aitem.year, aitem.month = map (int, oitem.pubdate.split ('/'))
+    aitem.pubdate = u'%d%s%s' % (aitem.year, nbsp, months[aitem.month - 1])
 
     # Template-friendly citation count
-    citeinfo = parse_ads_cites (item)
+    citeinfo = parse_ads_cites (oitem)
     if citeinfo is not None and citeinfo.cites > 0:
-        info.citecountnote = u' [%d]' % citeinfo.cites
+        aitem.citecountnote = u' [%d]' % citeinfo.cites
     else:
-        info.citecountnote = u''
+        aitem.citecountnote = u''
 
     # Citation contents -- a big complicated one. They come in verbose and
     # informal styles.
-    if item.has ('yjvi'):
-        info.vcite = ', '.join (item.yjvi.split ('/'))
-        info.icite = ' '.join (item.yjvi.split ('/')[1:])
-    elif item.has ('bookref') and item.has ('posid'):
+    if oitem.has ('yjvi'):
+        aitem.vcite = ', '.join (oitem.yjvi.split ('/'))
+        aitem.icite = ' '.join (oitem.yjvi.split ('/')[1:])
+    elif oitem.has ('bookref') and oitem.has ('posid'):
         # Proceedings of Science
-        info.vcite = '%d, in %s, %s' % (info.year, item.bookref, item.posid)
-        info.icite = '%s (%s)' % (item.bookref, item.posid)
-    elif item.has ('series') and item.has ('itemid'):
+        aitem.vcite = '%d, in %s, %s' % (aitem.year, oitem.bookref, oitem.posid)
+        aitem.icite = '%s (%s)' % (oitem.bookref, oitem.posid)
+    elif oitem.has ('series') and oitem.has ('itemid'):
         # Various numbered series.
-        info.vcite = '%d, %s, #%s' % (info.year, item.series, item.itemid)
-        info.icite = '%s #%s' % (item.series, item.itemid)
-    elif item.has ('tempstatus'):
+        aitem.vcite = '%d, %s, #%s' % (aitem.year, oitem.series, oitem.itemid)
+        aitem.icite = '%s #%s' % (oitem.series, oitem.itemid)
+    elif oitem.has ('tempstatus'):
         # "in prep"-type items with temporary, manually-set info
-        info.vcite = item.tempstatus
-        info.icite = item.tempstatus
+        aitem.vcite = oitem.tempstatus
+        aitem.icite = oitem.tempstatus
     else:
-        die ('no citation information for %s', item)
+        die ('no citation information for %s', oitem)
 
-    url = best_url (item)
+    url = best_url (oitem)
     if url is not None:
-        info.vcite = MupLink (url, info.vcite)
+        aitem.vcite = MupLink (url, aitem.vcite)
 
     # Other links for the web pub list
     from urllib2 import quote as urlquote
 
-    info.abstract_link = u''
-    info.preprint_link = u''
-    info.official_link = u''
-    info.other_link = u''
+    aitem.abstract_link = u''
+    aitem.preprint_link = u''
+    aitem.official_link = u''
+    aitem.other_link = u''
 
-    if item.has ('bibcode'):
-        info.abstract_link = MupLink ('http://adsabs.harvard.edu/abs/' + urlquote (item.bibcode),
+    if oitem.has ('bibcode'):
+        aitem.abstract_link = MupLink ('http://adsabs.harvard.edu/abs/' + urlquote (oitem.bibcode),
                                       'abstract')
 
-    if item.has ('arxiv'):
-        info.preprint_link = MupLink ('http://arxiv.org/abs/' + urlquote (item.arxiv),
+    if oitem.has ('arxiv'):
+        aitem.preprint_link = MupLink ('http://arxiv.org/abs/' + urlquote (oitem.arxiv),
                                       'preprint')
 
-    if item.has ('doi'):
-        info.official_link = MupLink ('http://dx.doi.org/' + urlquote (item.doi),
+    if oitem.has ('doi'):
+        aitem.official_link = MupLink ('http://dx.doi.org/' + urlquote (oitem.doi),
                                       'official')
 
-    if item.has ('url') and not item.has ('doi'):
-        info.other_link = MupLink (item.url, item.kind)
+    if oitem.has ('url') and not oitem.has ('doi'):
+        aitem.other_link = MupLink (oitem.url, oitem.kind)
 
-    return info
+    return aitem
 
 
 def compute_cite_stats (pubs):
