@@ -6,8 +6,8 @@ it in documents like CVs or publication lists.
 
 I was motivated to write these scripts for two reasons:
 
-* I want to have my CV and publications list availabled as both nice printable
-  PDFs *and* slick web-native webpages. And I don’t want to have to maintain
+* I want to have my CV and publications list available in both nicely printable
+  *and* slick web-native formats. And I don’t want to have to maintain
   multiple fancy documents by hand.
 * I want the computer to automatically do things like count citations and
   calculate my *h*-index, because those are the kinds of things that we
@@ -17,7 +17,7 @@ Because of the *first* issue, I don’t feel it’s sufficient to simply maintai
 an ever-growing LaTeX document. You can convert it to HTML, or just post the
 PDF online, but that doesn’t give results that are nearly as good as they can
 be — that is, they’re not at all close to what you’d create if you decided to
-make a slick, web-native list of publications.
+show the same information in a slick, web-native way.
 
 Because of the *second* issue, I want to record my academic output in some
 kind of simple data format so that I can easily write scripts to pull out
@@ -94,8 +94,11 @@ automatically create or update the output files using the standard `make`
 command. If you run `make` in the `example` directory, the four outputs
 `cv.pdf`, `pubs.pdf`, `cv.html`, and `pubs.html` will get created. You can
 take a look to see the general visual style and the sections that the default
-templates include. It’s not complicated to adjust the sections, or to
-copy the templating commands into your preexisting CV LaTeX file.
+templates include. It’s not complicated to adjust the sections, or to copy the
+templating commands into your preexisting CV LaTeX file. The `Makefile` also
+includes a hook to download updated citation counts from [ADS].
+
+[ADS]: http://adsabs.harvard.edu/
 
 
 Getting started
@@ -166,9 +169,8 @@ Publication records are read in and then “partitioned” into various groups
 (i.e., “refereed”, “non-refereed”) by the `partition_pubs` function in
 `cvlib.py`. The `PUBLIST` directive causes one of these groups to be output,
 with the crucial wrinkle that each record is augmented with a variety of extra
-records to allow various special effects, including a lame-brained
-`bibtex`-type functionality. This augmentation is done in the `cite_info`
-function, which is by far the most complicated part of `cvlib.py`.
+records to allow various special effects. This augmentation is done in the
+`cite_info` function in `cvlib.py`.
 
 If you want to group your publications differently (i.e. “refereed
 first-author”), then, you’ll need to edit `partition_pubs`. To change citation
@@ -180,13 +182,59 @@ The details of publication processing are documented farther below.
 Best practices
 --------------
 
-To be written.
+* The `<year>.txt` files are processed as Unicode text, with full support for
+  non-ASCII characters such as ² or α. Do *not* use TeX escaping. Instead, get
+  friendly with [http://unicodeit.net/] and [Compose Key] keyboard features.
+  This is the only sane way to include special characters in both LaTeX and
+  HTML output.
+* I *strongly* suggest that you maintain your data files in a version control
+  system such as [git]. In my personal CV repository, I link my data to these
+  scripts using the git “submodule” functionality, which works well but is
+  unfortunately not at all intuitive to learn.
+
+[Compose Key]: http://en.wikipedia.org/wiki/Compose_key
+[git]: http://git-scm.com/
 
 
 Technical details: publication records
 --------------------------------------
 
-To be written.
+The processing of publication records is a somewhat complicated part of the
+worklog system.
+
+As mentioned above, there are two basic wrinkles to the processing of
+publications. First, extra fields are added to the records on the fly.
+Second, the publications are “partitioned” into various subgroups.
+
+The automatic processing assumes that all publication records will define
+certain items. Some of the key ones are:
+
+* `title` — the title of the publication
+* `authors` — the list of authors, in a special format. Separate authors’
+  names are separated by *semicolons*. Each author’s name should be in
+  first-middle-last order — no commas. Surnames containing multiple words
+  should have the words separated by *underscores* — this is the easiest
+  way to have the software pull out surnames automatically. Initials are OK.
+* `mypos` — your numerical position in the author list, with 1 (sensibly)
+  being first.
+* `pubdate` — the year and month of the publication, in numerical `YYYY/MM`
+  format. The worklog system generally tries not to enforce a particular
+  date format, but here it does.
+* `refereed` — `y` if the publication is refereed, `n` if not.
+* `cite` — citation text for the publication. This is free-form. My personal
+  preference is to keep it terse and undecorated. Examples include:
+  * ApJ 746 L20
+  * proceedings of “RFI Mitigation Workshop” (Groningen)
+  * The Astronomer’s Telegram #3135
+  * MNRAS submitted
+
+There are also a set of items used to create various hyperlinks. As many of
+these should be defined as exist:
+
+* `arxiv` — the item’s unadorned Arxiv identifier, i.e. `1310.6757`.
+* `bibcode` — the item’s unadorned ADS bibcode, i.e. `2006ApJ...649.1020W`.
+* `doi` — the item’s unadorned DOI, i.e. `10.1088/2041-8205/733/2/L20`.
+* `url` — some other relevant URL.
 
 
 Technical details: script invocation
@@ -200,8 +248,8 @@ Technical details: template commands
 To be filled in.
 
 * CITESTATS
-* MARKUP (if kept)
 * FORMAT
+* MYABBREVNAME
 * PUBLIST
 * RMISCLIST
 * RMISCLIST_IF
