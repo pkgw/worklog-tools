@@ -28,8 +28,7 @@ title = The ATA Commensal Observing System
 pubdate = 2012/01
 bibcode = 2012arXiv1201.5413W
 arxiv = 1201.5413
-series = Allen Telescope Array Memo Series
-itemid = 89
+cite = "Allen Telescope Array memo series #89"
 authors = Peter K. G. Williams
 mypos = 1
 refereed = n
@@ -80,7 +79,7 @@ pubdate = 2012/06
 bibcode = 2012PASP..124..624W
 doi = 10.1086/666604
 arxiv = 1203.0330
-yjvi = 2012/PASP/124/624
+cite = PASP 124 624
 issue = 916
 pages = 13
 authors = Peter K. G. Williams; Casey J. Law; Geoffrey C. Bower
@@ -98,7 +97,7 @@ adscites = 2013/12/18 4
 # mypos = 1
 # refereed = n
 # url = https://www.cfa.harvard.edu/~pwilliam/williams_2012_bd50th_poster.pdf
-# tempstatus = presented at “50 Years of Brown Dwarfs: from Theoretical
+# cite = presented at “50 Years of Brown Dwarfs: from Theoretical
 #   Prediction to Astrophysical Studies” (Ringberg Castle, Bavaria, Germany)
 
 [talk]

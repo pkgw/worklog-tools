@@ -22,7 +22,7 @@ pubdate = 2013/01
 bibcode = 2013ApJ...762...85W
 doi = 10.1088/0004-637X/762/2/85
 arxiv = 1211.1042
-yjvi = 2013/ApJ/762/85
+cite = ApJ 762 85
 issue = 2
 pages = 24
 authors = Peter K. G. Williams; Geoffrey C. Bower; Steve Croft;
@@ -110,7 +110,7 @@ pubdate = 2013/02
 bibcode = 2013PASA...30....6M
 doi = 10.1017/pasa.2012.006
 arxiv = 1207.1528
-yjvi = 2013/PASA/30/6
+cite = PASA 30 6
 pages = 27
 authors = Tara Murphy; Shami Chatterjee; David L. Kaplan; Jay Banyer;
   Martin E. Bell; Hayley E. Bignall; Geoffrey C. Bower; Robert Cameron;
@@ -169,8 +169,7 @@ title = Constraints on the Progenitor of SN 2013ai (=PSN J06161835-2122329)
   in NGC 2207
 pubdate = 2013/03
 bibcode = 2013ATel.4862....1M
-series = The Astronomer’s Telegram
-itemid = 4862
+cite = "The Astronomer’s Telegram #4862"
 authors = Dan Milisavljevic; Alicia Soderberg; Ryan Foley; Ryan Chornock;
   Wen-fei Fong; Peter Williams; Edo Berger; Maria Drout; Raffaella Margutti;
   Schuyler D. Van_Dyk
@@ -191,7 +190,7 @@ pubdate = 2013/04
 bibcode = 2013ApJ...767L..30W
 doi = 10.1088/2041-8205/767/2/L30
 arxiv = 1301.2321
-yjvi = 2013/ApJ/767/L30
+cite = ApJ 767 L30
 issue = 2
 pages = 6
 authors = Peter K. G. Williams; Edo Berger; B. Ashley Zauderer
@@ -350,7 +349,7 @@ pubdate = 2013/12
 bibcode = 2013ApJ...779..172G
 doi = 10.1088/0004-637X/779/2/172
 arxiv = 1310.5940
-yjvi = 2013/ApJ/779/172
+cite = ApJ 779 172
 issue = 2
 pages = 14
 authors = John E. Gizis; Adam J. Burgasser; Edo Berger; Peter K. G. Williams;
@@ -396,7 +395,7 @@ arxiv = 1310.6757
 authors = P. K. G. Williams; B. A. Cook; E. Berger
 mypos = 1
 refereed = y
-tempstatus = ApJ submitted
+cite = ApJ submitted
 
 [pub]
 title = Trends in Ultracool Dwarf Magnetism. II. The Inverse Correlation
@@ -406,7 +405,7 @@ arxiv = 1310.6758
 authors = B. A. Cook; P. K. G. Williams; E. Berger
 mypos = 2
 refereed = y
-tempstatus = ApJ submitted
+cite = ApJ submitted
 
 [pub]
 kind = proceeding
@@ -415,7 +414,7 @@ pubdate = 2013/12
 bibcode = 2013MmSAI..84.1122W
 # no DOI, no arxiv.
 url = http://sait.oat.ts.astro.it/MSAIt840413/PDF/2013MmSAI..84.1122K.pdf
-yjvi = 2013/MmSAI/84/1122
+cite = MmSAI 84 1122
 issue = 4
 pages = 5
 authors = P. K. G. Williams

@@ -444,29 +444,12 @@ def cite_info (oitem, context):
     else:
         aitem.citecountnote = u''
 
-    # Citation contents -- a big complicated one. They come in verbose and
-    # informal styles.
-    if oitem.has ('yjvi'):
-        aitem.vcite = ', '.join (oitem.yjvi.split ('/'))
-        aitem.icite = ' '.join (oitem.yjvi.split ('/')[1:])
-    elif oitem.has ('bookref') and oitem.has ('posid'):
-        # Proceedings of Science
-        aitem.vcite = '%d, in %s, %s' % (aitem.year, oitem.bookref, oitem.posid)
-        aitem.icite = '%s (%s)' % (oitem.bookref, oitem.posid)
-    elif oitem.has ('series') and oitem.has ('itemid'):
-        # Various numbered series.
-        aitem.vcite = '%d, %s, #%s' % (aitem.year, oitem.series, oitem.itemid)
-        aitem.icite = '%s #%s' % (oitem.series, oitem.itemid)
-    elif oitem.has ('tempstatus'):
-        # "in prep"-type items with temporary, manually-set info
-        aitem.vcite = oitem.tempstatus
-        aitem.icite = oitem.tempstatus
-    else:
-        die ('no citation information for %s', oitem)
-
+    # Citation text with link
     url = best_url (oitem)
-    if url is not None:
-        aitem.vcite = MupLink (url, aitem.vcite)
+    if url is None:
+        aitem.lcite = aitem.cite
+    else:
+        aitem.lcite = MupLink (url, aitem.cite)
 
     # Other links for the web pub list
     from urllib2 import quote as urlquote
