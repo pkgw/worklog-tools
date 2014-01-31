@@ -99,14 +99,14 @@ command.
 Getting started
 ---------------
 
-To get started using this system for yourself in the absolutely quickest way,
-you can just personalize the example templates and start populating
-`<year>.txt` files from your existing CV.
+To get started using this system for yourself, you should copy the scripts and
+example files. Then there are two things to work on: customizing the
+templates, and entering your previous accomplishments into log files.
 
-There are only very loose constraints on how you want to name or arrange your
-files, though. The only place in which the relatively locations of the data
-files (templates and `<year>.txt`) and the scripts (`cvlib.py` and friends)
-matter is in the `Makefile` that invokes the scripts.
+There are only very loose constraints on how you want to name or arrange the
+various files. The relative locations of the data files (templates and
+`<year>.txt`) and the scripts (`cvlib.py` and friends) don’t particularly
+matter — they only come up in the `Makefile` in the example setup.
 
 The main processing script reads in data from every file in the current
 directory whose name ends in `.txt`. The files are processed in alphabetical
@@ -127,7 +127,7 @@ is to make it easy to take slightly different approaches.
 
 (The visual appearance of my documents may not match your preferences either.
 That’s entirely up to the LaTeX and HTML templates and your level of interest
-in futzing with them. This angle won’t be discussed further here.)
+in futzing with them.)
 
 ### Generic lists
 
@@ -218,10 +218,10 @@ certain items. Some of the key ones are:
 * `refereed` — `y` if the publication is refereed, `n` if not.
 * `cite` — citation text for the publication. This is free-form. My personal
   preference is to keep it terse and undecorated. Examples include:
-  * ApJ 746 L20
-  * proceedings of “RFI Mitigation Workshop” (Groningen)
-  * The Astronomer’s Telegram #3135
-  * MNRAS submitted
+  * `ApJ 746 L20`
+  * `proceedings of “RFI Mitigation Workshop” (Groningen)`
+  * `The Astronomer’s Telegram #3135`
+  * `MNRAS submitted`
 
 There are also a set of items used to create various hyperlinks. As many of
 these should be defined as exist:
