@@ -26,7 +26,7 @@ automating the generation of your own CV. The data format is flexible and
 the scripts are simple, so the sky’s the limit in terms of what kinds of
 numbers you can compute or effects you can achieve.
 
-Also, I like think that my LaTeX CV template is pretty nice.
+Also, I like to think that my LaTeX CV template is pretty nice.
 
 
 Diving in
