@@ -4,53 +4,55 @@ worklog-tools
 This software is part of a system for recording academic output and reporting
 it in documents like CVs or publication lists. 
 
-I was motivated to write these scripts for two reasons:
+### “Why do you need software for that?”
+
+Two reasons:
 
 * I want to have my CV and publications list available in both nicely printable
-  *and* slick web-native formats. And I don’t want to have to maintain
-  multiple fancy documents by hand.
-* I want the computer to automatically do things like count citations and
-  calculate my *h*-index, because those are the kinds of things that we
-  invented computers to do.
+  *and* slick web-native formats … without having to update two very different
+  documents all the time.
+* I want my CV to include things like my *h*-index, citation counts, total
+  observing time allocated, and so on. And I want the computer to be
+  responsible for figuring those out. Because that kind of stuff is why we
+  invented computers.
 
-Because of the *first* issue, I don’t feel it’s sufficient to simply maintain
-an ever-growing LaTeX document. You can convert it to HTML, or just post the
-PDF online, but that doesn’t give results that are nearly as good as they can
-be — that is, they’re not at all close to what you’d create if you decided to
-show the same information in a slick, web-native way.
+To accomplish these things, the worklog tools process simple structured text
+files and use the results to fill in LaTeX and HTML templates.
 
-Because of the *second* issue, I want to record my academic output in some
-kind of simple data format so that I can easily write scripts to pull out
-useful information and statistics.
+### “OK, sounds interesting. Should I care?”
 
-In these tools, I log activities in a *very simple* structured text format —
-[“ini file”][inifile] format, in particular. Python scripts can read these
-files, do things like compute *h*-indices, and then fill in LaTeX/HTML
-templates with information such as lists of talks, courses taught, or
-publications.
+Yes! You can copy the tools and example files to quickly get started
+automating the generation of your own CV. The data format is flexible and
+the scripts are simple, so the sky’s the limit in terms of what kinds of
+numbers you can compute or effects you can achieve.
 
-[inifile]: http://en.wikipedia.org/wiki/INI_file
-
-No unusual Python modules are required, and the scripts should be compatible
-with any recent Python 2.x.
+Also, I like think that my LaTeX CV template is pretty nice.
 
 
-Batteries included
-------------------
+Diving in
+---------
 
-This system has three pieces:
+The worklog system has three pieces:
 
-* The text files logging academic output
-* The LaTeX/HTML templates used to generate output documents
-* The scripts used to fill the latter using data gathered from the former.
+* Simple text files logging academic output
+* LaTeX/HTML templates used to generate output documents
+* Scripts that fill the latter using data gathered from the former.
 
 The scripts are found in the same directory as this file. The `example`
 subdirectory contains sample copies of templates (in `templates/`) and log
 files (in `2012.txt`, `2013.txt`).
 
-To get started, you might want to take a look at the log files to see how they
-look. Entries are line-oriented and come in paragraphs headed by a word
-encased in square brackets. A typical entry from `examples/2013.txt` is:
+To get started, try going into the `example` directory and typing `make`. This
+will create the outputs: a CV and publication list in PDF and HTML formats.
+(Assuming nothing breaks … the scripts are in Python and have few dependencies,
+so they should be widely portable.) The HTML results have not been particularly
+beautified, but I've tried to make the PDFs come out nicely.
+
+Now check out `examples/2013.txt`. Log files are in a basic [“ini
+file”][inifile] format, with entries coming in paragraphs headed by a word
+encased in square brackets. A typical record is:
+
+[inifile]: http://en.wikipedia.org/wiki/INI_file
 
     [talk]
     date = 2013 Apr
@@ -58,16 +60,16 @@ encased in square brackets. A typical entry from `examples/2013.txt` is:
     what = Magnetic Activity Past the Bottom of the Main Sequence
     invited = n
 
-(The precise file format is defined among the “Technical details” below.)
-Again, a big point of emphasis is that this data format is very simple.
-Whenever I give a talk, it takes almost no brainpower to append another
-`[talk]` entry to the current year’s log file.
+(The precise file format is defined among the “Technical details” below.) A
+major point of emphasis is that this format is very simple and readable for
+humans and computers alike.
 
 The template files, on the other hand, are complicated since they go to some
 effort to create attractive output. (Well, currently, this is much more true
 of the LaTeX templates than the HTML templates.) Most of this effort is in
-initialization, so the ends of the files are where the action is. For
-instance, toward the bottom of `example/templates/cv.tmpl.tex` you’ll find:
+initialization, so the ends of the files are where the actual content shows
+up. For instance, toward the bottom of `example/templates/cv.tmpl.tex` you’ll
+find:
 
     FORMAT \item[|date|] \emph{|where|} \\ ``|what|''
 
@@ -86,19 +88,12 @@ The `RMISCLIST_IF` directive writes a sequence of `talk` data items in
 reversed order, filtering for an `invited` field equal to `y`, filling in a
 template specified by the most recent `FORMAT` directive. Strings between
 pipes (`|what|`) in the `FORMAT` are replaced by the corresponding values from
-the data files. (Again, the precise functionalities of the various directives
-are defined in the “Technical details” below.)
+the data files. (The precise functionalities of the various directives are
+also defined among the “Technical details” below.)
 
 Finally, the `Makefile` in the `example` directory wires up commands to
 automatically create or update the output files using the standard `make`
-command. If you run `make` in the `example` directory, the four outputs
-`cv.pdf`, `pubs.pdf`, `cv.html`, and `pubs.html` will get created. You can
-take a look to see the general visual style and the sections that the default
-templates include. It’s not complicated to adjust the sections, or to copy the
-templating commands into your preexisting CV LaTeX file. The `Makefile` also
-includes a hook to download updated citation counts from [ADS].
-
-[ADS]: http://adsabs.harvard.edu/
+command.
 
 
 Getting started
