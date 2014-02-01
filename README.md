@@ -174,7 +174,7 @@ Best practices
 
 * The `<year>.txt` files are processed as Unicode text, with full support for
   non-ASCII characters such as ² or α. Do *not* use TeX escaping. Instead, get
-  friendly with [http://unicodeit.net/] and [Compose Key] keyboard features.
+  friendly with http://unicodeit.net/ and [Compose Key] keyboard features.
   This is the only sane way to include special characters in both LaTeX and
   HTML output.
 * I *strongly* suggest that you maintain your data files in a version control
