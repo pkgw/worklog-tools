@@ -1,8 +1,19 @@
 #! /usr/bin/env python
 # -*- mode: python ; coding: utf-8 -*-
+# Copyright 2014 Peter Williams <peter@newton.cx>
+# Licensed under the GNU General Public License, version 3 or higher.
 
-"""
-"""
+"""usage: wltool <command> [arguments...]
+
+workog commands are:
+
+  extract     Print out worklog records of a specific type
+  html        Fill in an HTML-formatted template
+  latex       Fill in a LaTeX-formatted template
+  summarize   Summarize the records present in the worklog data files
+
+Running 'wltool <command> --help' may give more information on the command
+in question."""
 
 from worklog import *
 
@@ -78,8 +89,9 @@ def cli_summarize (argv):
 if __name__ == '__main__':
     import sys
 
-    if len (sys.argv) < 2:
-        die ('usage: wltool <command> [args...]')
+    if len (sys.argv) < 2 or '--help' in sys.argv:
+        print __doc__
+        raise SystemExit (0)
 
     cmdname = sys.argv[1]
     clicmd = globals ().get ('cli_' + cmdname)
