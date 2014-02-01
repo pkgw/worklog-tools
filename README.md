@@ -239,10 +239,11 @@ The `cite_info` function uses the above information to create the following fiel
   page for the publication, if its `bibcode` is defined.
 * `bold_if_first_title` — a copy of `title`, but with markup to render it in bold
   if `mypos` is `1`, that is, you are the first author of the item.
-* `citecountnote` — text such as “ [4]” (including the space) if the item has
-  4 ADS citations; otherwise, it is empty.
+* `citecountnote` — text such as “ [4]” (including the leading space) if the item
+  has 4 ADS citations; otherwise, it is empty.
 * `full_authors` — the full author list, with names separated by commas and
-  non-surnames reduced to initials without punction; e.g. “PKG Williams, GC Bower”.
+  non-surnames reduced to initials without punctuation; e.g. “PKG Williams,
+  GC Bower”.
 * `lcite` — a copy of `cite`, but with markup to make it a hyperlink to an
   appropriate URL for the publication, based on `arxiv`, `bibcode`, `doi`, or
   `url`.
@@ -251,20 +252,20 @@ The `cite_info` function uses the above information to create the following fiel
   page for the publication, if `doi` is defined.
 * `other_link` — a hyperlink leading to the publication’s `url` field. The link
   text is the value of the `kind` field.
-* `preprint_link` — a hyperlink reading `preprint` that leads to the Arxiv
+* `preprint_link` — a hyperlink reading “preprint” that leads to the Arxiv
   page for the publication, if its `arxiv` is defined.
 * `quotable_title` — a copy of `title` with double quotes replaced with single
   quotes. This makes it suitable for encasing in double quotes itself. (We don‘t
   worry about subquotes in the title itself.) Note that the replacement operates
-  on proper typographic left and right quotes; that is, ‘“’ and ‘”’, but not ‘"’.
-* `pubdate` — this is modified to read “YYYY Mon”, where “Mon” is the standard
+  on proper typographic left and right quotes; that is, >“< and >”<, but not >"<.
+* `pubdate` — this is modified to read “<year> <Mon>”, where “<Mon>” is the standard
   three-letter abbreviation of the month name. The space between the year and the
   month is nonbreaking.
 * `refereed_mark` — a guillemet (») if the publication has `refereed` equal to `y`;
   nothing otherwise.
 * `short_authors` — a shortened author list; either “Foo”, “Foo & Bar”, “Foo, Bar,
   Baz”, or “Foo et al.”. Only surnames are included. If the `MYABBREVNAME`
-  directive has been used, your name (as determined from `mypos`) is replace with
+  directive has been used, your name (as determined from `mypos`) is replaced with
   an abbreviated value, so that the author list might read “PKGW & Bower”.
 * `year` — the numerical year of publication.
 
