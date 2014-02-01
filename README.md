@@ -9,8 +9,8 @@ it in documents like CVs or publication lists.
 Two reasons:
 
 * I want to have my CV and publications list available in both nicely printable
-  *and* slick web-native formats … without having to update two very different
-  documents all the time.
+  *and* slick web-native formats … without having to keep two very different
+  documents in sync.
 * I want my CV to include things like my *h*-index, citation counts, total
   observing time allocated, and so on. And I want the computer to be
   responsible for figuring those out. Because that kind of stuff is why we
@@ -22,9 +22,9 @@ files and use the results to fill in LaTeX and HTML templates.
 ### “OK, sounds interesting. Should I care?”
 
 Yes! You can copy the tools and example files to quickly get started
-automating the generation of your own CV. The data format is flexible and
-the scripts are simple, so the sky’s the limit in terms of what kinds of
-numbers you can compute or effects you can achieve.
+automating the generation of your own CV. The data format is flexible and the
+scripts are simple, so the sky’s the limit in terms of what effects you can
+achieve.
 
 Also, I like to think that my LaTeX CV template is pretty nice.
 
@@ -38,9 +38,9 @@ The worklog system has three pieces:
 * LaTeX/HTML templates used to generate output documents
 * Scripts that fill the latter using data gathered from the former.
 
-The scripts are found in the same directory as this file. The `example`
-subdirectory contains sample copies of templates (in `templates/`) and log
-files (in `2012.txt`, `2013.txt`).
+The script code is found in the same directory as this file, with `wltool`
+being the main driver. The `example` subdirectory contains sample copies of
+templates (in `*.tmpl.*`) and log files (in `2012.txt`, `2013.txt`).
 
 To get started, try going into the `example` directory and typing `make`. This
 will create the outputs: a CV and publication list in PDF and HTML formats.
@@ -49,7 +49,7 @@ so they should be widely portable.) The HTML results have not been particularly
 beautified, but I've tried to make the PDFs come out nicely.
 
 Now check out `examples/2013.txt`. Log files are in a basic [“ini
-file”][inifile] format, with entries coming in paragraphs headed by a word
+file”][inifile] format, with records coming in paragraphs headed by a word
 encased in square brackets. A typical record is:
 
 [inifile]: http://en.wikipedia.org/wiki/INI_file
@@ -68,8 +68,7 @@ The template files, on the other hand, are complicated since they go to some
 effort to create attractive output. (Well, currently, this is much more true
 of the LaTeX templates than the HTML templates.) Most of this effort is in
 initialization, so the ends of the files are where the actual content shows
-up. For instance, toward the bottom of `example/templates/cv.tmpl.tex` you’ll
-find:
+up. For instance, toward the bottom of `example/cv.tmpl.tex` you’ll find:
 
     FORMAT \item[|date|] \emph{|where|} \\ ``|what|''
 
@@ -84,12 +83,12 @@ find:
     \end{datelist}
 
 The lines beginning with ALL_CAPS trigger actions in the templating scripts.
-The `RMISCLIST_IF` directive writes a sequence of `talk` data items in
-reversed order, filtering for an `invited` field equal to `y`, filling in a
-template specified by the most recent `FORMAT` directive. Strings between
-pipes (`|what|`) in the `FORMAT` are replaced by the corresponding values from
-the data files. (The precise functionalities of the various directives are
-also defined among the “Technical details” below.)
+The `RMISCLIST_IF` directive writes a sequence of `[talk]` records in reversed
+order, filtering for an `invited` field equal to `y`. Each record is
+LaTeXified using the template specified in the most recent `FORMAT` directive.
+Strings between pipes (`|what|`) in the `FORMAT` are replaced by the
+corresponding values from each record. (The precise functionalities of the
+various directives are also defined among the “Technical details” below.)
 
 Finally, the `Makefile` in the `example` directory wires up commands to
 automatically create or update the output files using the standard `make`
@@ -99,16 +98,12 @@ command.
 Getting started
 ---------------
 
-To get started using this system for yourself, you should copy the scripts and
-example files. Then there are two things to work on: customizing the
+To get started using this system for yourself, you should copy the script code
+and example files. Then there are two things to work on: customizing the
 templates, and entering your previous accomplishments into log files.
 
-There are only very loose constraints on how you want to name or arrange the
-various files. The relative locations of the data files (templates and
-`<year>.txt`) and the scripts (`wltool` and friends) don’t particularly
-matter — they only come up in the `Makefile` in the example setup.
-
-The main processing script reads in data from every file in the current
+There are basically no constraints on what directories the various files need
+to live in. The `wltool` will read in data from every file in the current
 directory whose name ends in `.txt`. The files are processed in alphabetical
 order.
 
