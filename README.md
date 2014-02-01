@@ -142,8 +142,8 @@ order, which is generally what you want.
 As for filtering, the `RMISCLIST` directives select log records of only a
 certain type, where the “type” is defined by the word inside square brackets
 beginning each record (e.g., `[talk]`). The `RMISCLIST_IF` and
-`RMISCLIST_IF_NOT` directives further filter checking whether an item in each
-record is equal to `y`, with a missing item being treated as `n`.
+`RMISCLIST_IF_NOT` directives further filter checking whether a field in each
+record is equal to `y`, with a missing field being treated as `n`.
 
 To extend this behavior, you’re going to need to edit `worklog.py`. See the
 `cmd_rev_misc_list*` functions and `setup_processing`, which activates
@@ -197,7 +197,7 @@ publications. First, extra fields are added to the records on the fly.
 Second, the publications are “partitioned” into various subgroups.
 
 The automatic processing assumes that all publication records will define
-certain items. Some of the key ones are:
+certain fields. Some of the key ones are:
 
 * `title` — the title of the publication
 * `authors` — the list of authors, in a special format. Separate authors’
@@ -218,13 +218,55 @@ certain items. Some of the key ones are:
   * `The Astronomer’s Telegram #3135`
   * `MNRAS submitted`
 
-There are also a set of items used to create various hyperlinks. As many of
+There are also a set of fields used to create various hyperlinks. As many of
 these should be defined as exist:
 
 * `arxiv` — the item’s unadorned Arxiv identifier, i.e. `1310.6757`.
 * `bibcode` — the item’s unadorned ADS bibcode, i.e. `2006ApJ...649.1020W`.
 * `doi` — the item’s unadorned DOI, i.e. `10.1088/2041-8205/733/2/L20`.
 * `url` — some other relevant URL.
+
+Some fields are optional:
+
+* `adscites` — records ADS citation counts. Automatically set by the `wltool
+  update-cites` command
+* `kind` — a one-word description of the item kind if it is nonstandard (e.g.,
+  `poster`). This is only used for the `other_link` field described below.
+
+The `cite_info` function uses the above information to create the following fields:
+
+* `abstract_link` — a hyperlink reading “abstract” that leads to the ADS
+  page for the publication, if its `bibcode` is defined.
+* `bold_if_first_title` — a copy of `title`, but with markup to render it in bold
+  if `mypos` is `1`, that is, you are the first author of the item.
+* `citecountnote` — text such as “ [4]” (including the space) if the item has
+  4 ADS citations; otherwise, it is empty.
+* `full_authors` — the full author list, with names separated by commas and
+  non-surnames reduced to initials without punction; e.g. “PKG Williams, GC Bower”.
+* `lcite` — a copy of `cite`, but with markup to make it a hyperlink to an
+  appropriate URL for the publication, based on `arxiv`, `bibcode`, `doi`, or
+  `url`.
+* `month` — the numerical month of publication
+* `official_link` — a hyperlink reading “official” that leads to the DOI
+  page for the publication, if `doi` is defined.
+* `other_link` — a hyperlink leading to the publication’s `url` field. The link
+  text is the value of the `kind` field.
+* `preprint_link` — a hyperlink reading `preprint` that leads to the Arxiv
+  page for the publication, if its `arxiv` is defined.
+* `quotable_title` — a copy of `title` with double quotes replaced with single
+  quotes. This makes it suitable for encasing in double quotes itself. (We don‘t
+  worry about subquotes in the title itself.) Note that the replacement operates
+  on proper typographic left and right quotes; that is, ‘“’ and ‘”’, but not ‘"’.
+* `pubdate` — this is modified to read “YYYY Mon”, where “Mon” is the standard
+  three-letter abbreviation of the month name. The space between the year and the
+  month is nonbreaking.
+* `refereed_mark` — a guillemet (») if the publication has `refereed` equal to `y`;
+  nothing otherwise.
+* `short_authors` — a shortened author list; either “Foo”, “Foo & Bar”, “Foo, Bar,
+  Baz”, or “Foo et al.”. Only surnames are included. If the `MYABBREVNAME`
+  directive has been used, your name (as determined from `mypos`) is replace with
+  an abbreviated value, so that the author list might read “PKGW & Bower”.
+* `year` — the numerical year of publication.
 
 
 Technical details: script invocation
