@@ -34,7 +34,7 @@ summary: $(infos)
 	python $(driver) summarize
 
 update-ads:
-	@for i in $(infos) ; do python $(toolsdir)/update-adscites.py $$i ; done
+	python $(driver) update-cites
 
 clean:
 	-rm -f *.aux *.log *.log2 *.out *.pdf *.html *.tex

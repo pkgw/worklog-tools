@@ -6,12 +6,14 @@ Shared routines for my worklog tools.
 
 __all__ = ('nbsp months '
            'Holder die warn open_template slurp_template process_template '
+           'list_data_files load '
            'unicode_to_latex html_escape '
            'Markup MupText MupItalics MupBold MupLink MupJoin MupList '
-           'render_latex render_html Formatter load '
+           'render_latex render_html Formatter '
            'parse_ads_cites canonicalize_name surname best_url cite_info '
            'compute_cite_stats partition_pubs '
-           'setup_processing').split ()
+           'setup_processing '
+           'get_ads_cite_count').split ()
 
 nbsp = u'\u00a0'
 months = 'Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'.split ()
@@ -82,6 +84,33 @@ def process_template (stream, commands, context):
             else:
                 for subline in result:
                     yield subline
+
+
+def list_data_files (datadir='.'):
+    from os import listdir
+    from os.path import join
+
+    any = False
+
+    for item in sorted (listdir (datadir)):
+        if not item.endswith ('.txt'):
+            continue
+
+        # Note that if there are text files that contain no records (e.g. all
+        # commented), we won't complain.
+        any = True
+        yield join (datadir, item)
+
+    if not any:
+        die ('no data files found in directory "%s"', datadir)
+
+
+def load (datadir='.'):
+    from inifile import read as iniread
+
+    for path in list_data_files (datadir):
+        for item in iniread (path):
+            yield item
 
 
 # Text formatting. We have a tiny DOM-type system for markup so we can
@@ -307,31 +336,6 @@ class Formatter (object):
 
     def __call__ (self, item):
         return ''.join (self._handle_one (d, item) for d in self.tmplinfo)
-
-
-# Loading up the data
-
-def load (datadir='.'):
-    from os import listdir
-    from os.path import join
-    from inifile import read as iniread
-
-    any = False
-
-    for item in sorted (listdir (datadir)):
-        if not item.endswith ('.txt'):
-            continue
-
-        # Note that if there are text files that contain no record (e.g. all
-        # commented), we won't complain.
-        any = True
-
-        path = join (datadir, item)
-        for item in iniread (path):
-            yield item
-
-    if not any:
-        die ('no data files found in directory "%s"', datadir)
 
 
 # Utilities for dealing with publications.
@@ -663,3 +667,36 @@ def setup_processing (render, datadir):
     commands['TODAY.'] = cmd_today
 
     return context, commands
+
+
+# ADS citation counts
+
+# this custom format returns exactly the ADS citation count
+_ads_url_tmpl = (r'http://adsabs.harvard.edu/cgi-bin/nph-abs_connect?'
+                 r'bibcode=%(bibcode)s&data_type=Custom&format=%%25c&nocookieset=1')
+
+
+def get_ads_cite_count (bibcode):
+    from urllib2 import urlopen
+    url = _ads_url_tmpl % {'bibcode': bibcode}
+    lastnonempty = None
+
+    for line in urlopen (url):
+        line = line.strip ()
+        if len (line):
+            lastnonempty = line
+
+    if lastnonempty is None:
+        die ('got only empty lines for bibcode %s', bibcode)
+
+    if lastnonempty.startswith ('Retrieved 0 abstracts'):
+        warn ('no ADS entry for bibcode %s', bibcode)
+        return 0
+
+    try:
+        count = int (lastnonempty)
+    except Exception:
+        die ('got unexpected final line "%s" from ADS for bibcode %s',
+             lastnonempty, bibcode)
+
+    return count

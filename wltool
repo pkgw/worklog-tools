@@ -7,10 +7,11 @@
 
 workog commands are:
 
-  extract     Print out worklog records of a specific type
-  html        Fill in an HTML-formatted template
-  latex       Fill in a LaTeX-formatted template
-  summarize   Summarize the records present in the worklog data files
+  extract        Print out worklog records of a specific type
+  html           Fill in an HTML-formatted template
+  latex          Fill in a LaTeX-formatted template
+  summarize      Summarize the records present in the worklog data files
+  update-cites   Update ADS citation counts in the worklog data files
 
 Running 'wltool <command> --help' may give more information on the command
 in question."""
@@ -86,6 +87,53 @@ def cli_summarize (argv):
         print '% *s: %d' % (maxsectlen, section, count)
 
 
+_update_minwait = 7 * 24 * 3600 # 1 week
+
+def cli_update_cites (argv):
+    if len (argv) not in (1, 2):
+        die ('usage: wltool update-cites [datadir]')
+
+    if len (argv) < 2:
+        datadir = '.'
+    else:
+        datadir = argv[1]
+
+    import time
+    from inifile import mutateInPlace
+
+    now = int (time.time ())
+    nowstr = time.strftime ('%Y/%m/%d ', time.gmtime (now))
+
+    for path in list_data_files (datadir):
+        for item in mutateInPlace (path):
+            if not item.data.has ('bibcode'):
+                continue
+
+            bibcode = item.data.bibcode
+            firstauth = item.data.has ('mypos') and int (item.data.mypos) == 1
+            reffed = item.data.has ('refereed') and item.data.refereed == 'y'
+
+            if not item.data.has ('adscites'):
+                lastupdate = curcites = 0
+            else:
+                try:
+                    a = item.data.adscites.split ()[:2]
+                    y, m, d = [int (x) for x in a[0].split ('/')]
+                    lastupdate = time.mktime ((y, m, d, 0, 0, 0, 0, 0, 0))
+                    curcites = int (a[1])
+                except Exception:
+                    warn ('cannot parse adscites entry: %s', item.data.adscites)
+                    continue
+
+            if lastupdate + _update_minwait > now:
+                continue
+
+            print bibcode, ' *'[firstauth] + ' R'[reffed], '...',
+            newcites = get_ads_cite_count (bibcode)
+            item.set ('adscites', nowstr + str (newcites))
+            print '%d (%+d)' % (newcites, newcites - curcites)
+
+
 if __name__ == '__main__':
     import sys
 
@@ -94,7 +142,7 @@ if __name__ == '__main__':
         raise SystemExit (0)
 
     cmdname = sys.argv[1]
-    clicmd = globals ().get ('cli_' + cmdname)
+    clicmd = globals ().get ('cli_' + cmdname.replace ('-', '_'))
 
     if not callable (clicmd):
         die ('unknown subcommand "%s"', cmdname)
