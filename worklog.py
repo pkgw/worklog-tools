@@ -1,6 +1,17 @@
-#! /usr/bin/env python
 # -*- mode: python ; coding: utf-8 -*-
-# Shared routines for my CV / publication-list tools.
+
+"""
+Shared routines for my worklog tools.
+"""
+
+__all__ = ('nbsp months '
+           'Holder die warn open_template slurp_template process_template '
+           'unicode_to_latex html_escape '
+           'Markup MupText MupItalics MupBold MupLink MupJoin MupList '
+           'render_latex render_html Formatter load '
+           'parse_ads_cites canonicalize_name surname best_url cite_info '
+           'compute_cite_stats partition_pubs '
+           'setup_processing').split ()
 
 nbsp = u'\u00a0'
 months = 'Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'.split ()
@@ -632,8 +643,6 @@ def cmd_today (context):
     return context.render (text)
 
 
-# Command-line driver
-
 def setup_processing (render, datadir):
     context = Holder ()
     context.render = render
@@ -654,86 +663,3 @@ def setup_processing (render, datadir):
     commands['TODAY.'] = cmd_today
 
     return context, commands
-
-
-def _cli_render (argv):
-    fmtname = argv[0]
-
-    if len (argv) not in (2, 3):
-        die ('usage: {driver} %s <template> [datadir]', fmtname)
-
-    tmpl = argv[1]
-
-    if len (argv) < 3:
-        datadir = '.'
-    else:
-        datadir = argv[2]
-
-    if fmtname == 'latex':
-        render = render_latex
-    elif fmtname == 'html':
-        render = render_html
-    else:
-        die ('unknown output format "%s"', fmtname)
-
-    context, commands = setup_processing (render, datadir)
-
-    with open (tmpl) as f:
-        for outline in process_template (f, commands, context):
-            print outline.encode ('utf8')
-
-
-cli_latex = _cli_render
-cli_html = _cli_render
-
-
-def cli_extract (argv):
-    from inifile import write
-    import sys
-
-    if len (argv) not in (2, 3):
-        die ('usage: {driver} extract <section-name> [datadir]')
-
-    sectname = argv[1]
-
-    if len (argv) < 3:
-        datadir = '.'
-    else:
-        datadir = argv[2]
-
-    write (sys.stdout, (i for i in load (datadir) if i.section == sectname))
-
-
-def cli_summarize (argv):
-    if len (argv) not in (1, 2):
-        die ('usage: {driver} summarize [datadir]')
-
-    if len (argv) < 2:
-        datadir = '.'
-    else:
-        datadir = argv[1]
-
-    counts = {}
-    maxsectlen = 0
-
-    for i in load (datadir):
-        counts[i.section] = counts.get (i.section, 0) + 1
-        maxsectlen = max (maxsectlen, len (i.section))
-
-    for section, count in sorted (counts.iteritems ()):
-        print '% *s: %d' % (maxsectlen, section, count)
-
-
-if __name__ == '__main__':
-    import sys
-
-    if len (sys.argv) < 2:
-        die ('usage: {driver} <command> [args...]')
-
-    cmdname = sys.argv[1]
-    clicmd = globals ().get ('cli_' + cmdname)
-
-    if not callable (clicmd):
-        die ('unknown subcommand "%s"', cmdname)
-
-    clicmd (sys.argv[1:])

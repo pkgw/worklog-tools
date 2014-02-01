@@ -2,7 +2,7 @@ worklog-tools
 =============
 
 This software is part of a system for recording academic output and reporting
-it in documents like CVs or publication lists. 
+it in documents like CVs or publication lists.
 
 ### “Why do you need software for that?”
 
@@ -105,7 +105,7 @@ templates, and entering your previous accomplishments into log files.
 
 There are only very loose constraints on how you want to name or arrange the
 various files. The relative locations of the data files (templates and
-`<year>.txt`) and the scripts (`cvlib.py` and friends) don’t particularly
+`<year>.txt`) and the scripts (`wltool` and friends) don’t particularly
 matter — they only come up in the `Makefile` in the example setup.
 
 The main processing script reads in data from every file in the current
@@ -150,7 +150,7 @@ beginning each record (e.g., `[talk]`). The `RMISCLIST_IF` and
 `RMISCLIST_IF_NOT` directives further filter checking whether an item in each
 record is equal to `y`, with a missing item being treated as `n`.
 
-To extend this behavior, you’re going to need to edit `cvlib.py`. See the
+To extend this behavior, you’re going to need to edit `worklog.py`. See the
 `cmd_rev_misc_list*` functions and `setup_processing`, which activates
 different directives.
 
@@ -162,10 +162,10 @@ links, and computation of statistics such as the *h*-index.
 
 Publication records are read in and then “partitioned” into various groups
 (i.e., “refereed”, “non-refereed”) by the `partition_pubs` function in
-`cvlib.py`. The `PUBLIST` directive causes one of these groups to be output,
+`worklog.py`. The `PUBLIST` directive causes one of these groups to be output,
 with the crucial wrinkle that each record is augmented with a variety of extra
 records to allow various special effects. This augmentation is done in the
-`cite_info` function in `cvlib.py`.
+`cite_info` function in `worklog.py`.
 
 If you want to group your publications differently (i.e. “refereed
 first-author”), then, you’ll need to edit `partition_pubs`. To change citation

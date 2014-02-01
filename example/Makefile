@@ -11,7 +11,7 @@ toolsdir = ..
 
 # Settings that probably won't need to be changed:
 
-driver = $(toolsdir)/cvlib.py
+driver = $(toolsdir)/wltool
 infos = $(wildcard *.txt)
 
 # Rules:
