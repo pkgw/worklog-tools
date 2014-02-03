@@ -1,5 +1,9 @@
 # -*- conf -*-
-# (The above line causes Emacs to use nice syntax highlighting.)
+# Copyright 2014 Peter Williams <peter@newton.cx>
+# Licensed under the Creative Commons
+#   Attribution-NonCommercial-NoDerivatives 4.0 International license.
+#
+# (The top line causes Emacs to use nice syntax highlighting.)
 
 [job]
 date = 2012–present

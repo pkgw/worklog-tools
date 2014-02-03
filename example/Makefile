@@ -1,3 +1,5 @@
+# This work is dedicated to the public domain.
+
 # Basic settings
 
 toolsdir = ..

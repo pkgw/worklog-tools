@@ -1,4 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
+# Copyright 2014 Peter Williams <peter@newton.cx>
+# Licensed under the GNU General Public License, version 3 or higher.
 
 """
 Shared routines for my worklog tools.

@@ -294,3 +294,9 @@ Technical details: the ini file format
 --------------------------------------
 
 To be written.
+
+
+Copyright and license status of this document
+---------------------------------------------
+
+This work is dedicated to the public domain.

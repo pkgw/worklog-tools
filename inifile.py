@@ -1,4 +1,4 @@
-# Copyright 2012 Peter Williams
+# Copyright 2012-2014 Peter Williams
 # Licensed under the GNU General Public License version 3 or higher
 
 """A simple parser for ini-style files that's better than Python's
