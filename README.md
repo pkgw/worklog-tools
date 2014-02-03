@@ -54,11 +54,13 @@ encased in square brackets. A typical record is:
 
 [inifile]: http://en.wikipedia.org/wiki/INI_file
 
-    [talk]
-    date = 2013 Apr
-    where = OIR seminar, Harvard/Smithsonian Center for Astrophysics
-    what = Magnetic Activity Past the Bottom of the Main Sequence
-    invited = n
+```INI
+[talk]
+date = 2013 Apr
+where = OIR seminar, Harvard/Smithsonian Center for Astrophysics
+what = Magnetic Activity Past the Bottom of the Main Sequence
+invited = n
+```
 
 (The precise file format is defined among the “Technical details” below.) A
 major point of emphasis is that this format is very simple and readable for
@@ -70,17 +72,19 @@ of the LaTeX templates than the HTML templates.) Most of this effort is in
 initialization, so the ends of the files are where the actual content shows
 up. For instance, toward the bottom of `example/cv.tmpl.tex` you’ll find:
 
-    FORMAT \item[|date|] \emph{|where|} \\ ``|what|''
+```TeX
+FORMAT \item[|date|] \emph{|where|} \\ ``|what|''
 
-    \section*{Professional Talks --- Invited}
-    \begin{datelist} % this is a custom environment for nice spacing
-    RMISCLIST_IF talk invited
-    \end{datelist}
+\section*{Professional Talks --- Invited}
+\begin{datelist} % this is a custom environment for nice spacing
+RMISCLIST_IF talk invited
+\end{datelist}
 
-    \section*{Professional Talks --- Other}
-    \begin{datelist}
-    RMISCLIST_IF_NOT talk invited
-    \end{datelist}
+\section*{Professional Talks --- Other}
+\begin{datelist}
+RMISCLIST_IF_NOT talk invited
+\end{datelist}
+```
 
 The lines beginning with ALL_CAPS trigger actions in the templating scripts.
 The `RMISCLIST_IF` directive writes a sequence of `[talk]` records in reversed
