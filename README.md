@@ -38,20 +38,21 @@ The worklog system has three pieces:
 * LaTeX/HTML templates used to generate output documents
 * Software to fill the latter using data gathered from the former
 
-The software is in the same directory as this file — the [wltool](wltool) script
-drives everything from the command line . The `example` subdirectory contains
-sample copies of templates (in `*.tmpl.*`) and log files (in `2012.txt`,
-`2013.txt`).
+The software is in the same directory as this file — the [wltool](wltool)
+script drives everything from the command line . The [example](example)
+subdirectory contains sample copies of templates (in `*.tmpl.*`) and log files
+(in [2012.txt](example/2012.txt), [2013.txt](example/2013.txt)).
 
-To get started, try going into the `example` directory and typing `make`. This
-will create the outputs: a CV and publication list in PDF and HTML formats.
-(Assuming nothing breaks … the scripts are in Python and have few dependencies,
-so they should be widely portable.) The HTML results have not been particularly
-beautified, but I've tried to make the PDFs come out nicely.
+To get started, try going into the [example](example) directory and typing
+`make`. This will create the outputs: a CV and publication list in PDF and
+HTML formats. (Assuming nothing breaks … the scripts are in Python and have
+few dependencies, so they should be widely portable.) The HTML results have
+not been particularly beautified, but I've tried to make the PDFs come out
+nicely.
 
-Now check out `examples/2013.txt`. Log files are in a basic [“ini
-file”][inifile] format, with records coming in paragraphs headed by a word
-encased in square brackets. A typical record is:
+Now check out [example/2013.txt](example/2013.txt). Log files are in a basic
+[“ini file”][inifile] format, with records coming in paragraphs headed by a
+word encased in square brackets. A typical record is:
 
 [inifile]: http://en.wikipedia.org/wiki/INI_file
 
@@ -71,7 +72,8 @@ The template files, on the other hand, are complicated since they go to some
 effort to create attractive output. (Well, currently, this is much more true
 of the LaTeX templates than the HTML templates.) Most of this effort is in
 initialization, so the ends of the files are where the actual content shows
-up. For instance, toward the bottom of `example/cv.tmpl.tex` you’ll find:
+up. For instance, toward the bottom of
+[example/cv.tmpl.tex](example/cv.tmpl.tex) you’ll find:
 
 ```TeX
 FORMAT \item[|date|] \emph{|where|} \\ ``|what|''
@@ -95,9 +97,9 @@ Strings between pipes (`|what|`) in the `FORMAT` are replaced by the
 corresponding values from each record. (The precise functionalities of the
 various directives are also defined among the “Technical details” below.)
 
-Finally, the `Makefile` in the `example` directory wires up commands to
-automatically create or update the output files using the standard `make`
-command.
+Finally, the [Makefile](example/Makefile) in the [example](example) directory
+wires up commands to automatically create or update the output files using the
+standard `make` command.
 
 
 Getting started
@@ -108,9 +110,9 @@ and example files. Then there are two things to work on: customizing the
 templates, and entering your previous accomplishments into log files.
 
 There are basically no constraints on what directories the various files need
-to live in. The `wltool` will read in data from every file in the current
-directory whose name ends in `.txt`. The files are processed in alphabetical
-order.
+to live in. The [wltool](wltool) will read in data from every file in the
+current directory whose name ends in `.txt`. The files are processed in
+alphabetical order.
 
 A few of the templating directives read in small, standalone sub-template
 files. These are searched for first in a directory named `templates` below the
