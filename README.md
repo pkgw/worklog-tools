@@ -10,14 +10,16 @@ Two reasons:
 
 * I want to have my CV and publications list available in both nicely
   *printable and* slick web-native formats … without having to keep two very
-  *different documents in sync.
+  different documents in sync.
 * I want my CV to include things like my *h*-index, citation counts, total
   telescope time allocated, and so on. (Oh, by the way: I’m an astronomer.)
   And I want the computer to be responsible for figuring those out. Because
   that kind of stuff is why we invented computers.
 
 To accomplish these things, the worklog tools process simple structured text
-files and use the results to fill in LaTeX and HTML templates.
+files and use the results to fill in LaTeX and HTML templates. There’s
+built-in functionality to fetch citation counts and fill in statistics like
+your *h*-index.
 
 ### “Sounds like a thing. Should I care?”
 
@@ -114,12 +116,9 @@ the [Makefile](example/Makefile) to change `toolsdir` to `.` rather than `..`.
 Then there are two things to work on: customizing the templates, and entering
 your previous accomplishments into log files. You’ll probably edit these
 hand-in-hand as you decide what things to include in your CV and how you want
-to express them in your log files.
-
-I organize my log files by year (e.g. [2012.txt](example/2012.txt)) but you
-can arrange them any way you want. The [wltool](wltool) reads in data from
-every file in the current directory whose name ends in `.txt`, processing the
-files in alphabetical order.
+to express them in your log files. Obviously, for some things it makes more
+sense just to put them directly in the templates, rather than using the
+templating system.
 
 Unsurprisingly, the templates get filled by running the [wltool](wltool)
 program. It has several subcommands that [are documented
@@ -129,6 +128,11 @@ subcommands are the main ones to use. Of special note, however, is the
 from [NASA ADS].
 
 [NASA ADS]: http://adsabs.harvard.edu/
+
+I organize my log files by year (e.g. [2012.txt](example/2012.txt)) but you
+can arrange them any way you want. The [wltool](wltool) reads in data from
+every file in the current directory whose name ends in `.txt`, processing the
+files in alphabetical order.
 
 I recommend that you use `make` to drive the template filling and
 [git](http://git-scm.com/) to version-control your files, but those things are
@@ -142,7 +146,7 @@ The main method for filling the templates with data is a combination of
 because you can define whatever fields you want in your log files and get them
 inserted by writing a `FORMAT` directive.
 
-*Important.* When fields from the logs are inserted into the templates, they
+*Important!* When fields from the logs are inserted into the templates, they
 are escaped for LaTeX and HTML as appropriate. So if you write
 
 ```INI
@@ -189,8 +193,8 @@ Publication records are read in and then “partitioned” into various groups
 (i.e., “refereed”, “non-refereed”) by the `partition_pubs` function in
 [worklog.py](worklog.py). The `PUBLIST` directive causes one of these groups
 to be output, with the crucial wrinkle that each record is augmented with a
-variety of extra records to allow various special effects. This augmentation
-is done in the `cite_info` function in [worklog.py](worklog.py).
+variety of extra fields to allow various special effects. This augmentation is
+done in the `cite_info` function in [worklog.py](worklog.py).
 
 If you want to group your publications differently (i.e. “refereed
 first-author”), then, you’ll need to edit `partition_pubs`. To change citation
@@ -243,14 +247,14 @@ There are also a set of fields used to create various hyperlinks. As many of
 these should be defined as exist:
 
 * `arxiv` — the item’s unadorned Arxiv identifier, i.e. `1310.6757`.
-* `bibcode` — the item’s unadorned ADS bibcode, i.e. `2006ApJ...649.1020W`.
+* `bibcode` — the item’s unadorned [NASA ADS] bibcode, i.e. `2006ApJ...649.1020W`.
 * `doi` — the item’s unadorned DOI, i.e. `10.1088/2041-8205/733/2/L20`.
 * `url` — some other relevant URL.
 
 Some fields are optional:
 
 * `adscites` — records [NASA ADS] citation counts. Automatically set by the `wltool
-  update-cites` command
+  update-cites` command.
 * `kind` — a one-word description of the item kind if it is nonstandard (e.g.,
   `poster`). This is only used for the `other_link` field described below.
 
@@ -260,7 +264,7 @@ The `cite_info` function uses the above information to create the following fiel
   page for the publication, if its `bibcode` is defined.
 * `bold_if_first_title` — a copy of `title`, but with markup to render it in bold
   if `mypos` is `1`, that is, you are the first author of the item.
-* `citecountnote` — text such as “ [4]” (including the leading space) if the item
+* `citecountnote` — text such as “ [4]” (including a leading space) if the item
   has 4 ADS citations; otherwise, it is empty.
 * `full_authors` — the full author list, with names separated by commas and
   non-surnames reduced to initials without punctuation; e.g. “PKG Williams,
