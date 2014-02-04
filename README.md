@@ -19,7 +19,7 @@ Two reasons:
 To accomplish these things, the worklog tools process simple structured text
 files and use the results to fill in LaTeX and HTML templates.
 
-### “OK, sounds interesting. Should I care?”
+### “Sounds like a thing. Should I care?”
 
 Yes! You can copy the tools and example files to quickly get started
 automating the generation of your own CV. The data format is flexible and the
@@ -36,11 +36,12 @@ The worklog system has three pieces:
 
 * Simple text files logging academic output
 * LaTeX/HTML templates used to generate output documents
-* Scripts that fill the latter using data gathered from the former.
+* Software to fill the latter using data gathered from the former
 
-The script code is found in the same directory as this file, with `wltool`
-being the main driver. The `example` subdirectory contains sample copies of
-templates (in `*.tmpl.*`) and log files (in `2012.txt`, `2013.txt`).
+The software is in the same directory as this file — the [wltool] script
+drives everything from the command line . The `example` subdirectory contains
+sample copies of templates (in `*.tmpl.*`) and log files (in `2012.txt`,
+`2013.txt`).
 
 To get started, try going into the `example` directory and typing `make`. This
 will create the outputs: a CV and publication list in PDF and HTML formats.
