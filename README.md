@@ -38,7 +38,7 @@ The worklog system has three pieces:
 * LaTeX/HTML templates used to generate output documents
 * Software to fill the latter using data gathered from the former
 
-The software is in the same directory as this file — the [wltool] script
+The software is in the same directory as this file — the [wltool](wltool) script
 drives everything from the command line . The `example` subdirectory contains
 sample copies of templates (in `*.tmpl.*`) and log files (in `2012.txt`,
 `2013.txt`).
