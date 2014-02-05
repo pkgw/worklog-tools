@@ -145,6 +145,7 @@ if __name__ == '__main__':
     clicmd = globals ().get ('cli_' + cmdname.replace ('-', '_'))
 
     if not callable (clicmd):
-        die ('unknown subcommand "%s"', cmdname)
+        die ('unknown subcommand "%s"; run this program without arguments '
+             'for usage help', cmdname)
 
     clicmd (sys.argv[1:])
