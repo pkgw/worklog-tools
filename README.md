@@ -96,11 +96,11 @@ RMISCLIST_IF_NOT talk invited
 ```
 
 The lines beginning with ALL_CAPS trigger actions in the templating scripts.
-The [RMISCLIST_IF](#rmisclist-if-type1-type2-gatefield) directive writes a
+The [RMISCLIST_IF](#rmisclist_if-type1type2-gatefield) directive writes a
 sequence of `[talk]` records in reversed order, filtering for an `invited`
 field equal to `y`. Each record is LaTeXified using the template specified in
-the most recent [FORMAT](#format-template-text) directive. Strings between
-pipes (`|what|`) in the [FORMAT](#format-template-text) are replaced by the
+the most recent [FORMAT](#format-template-text-) directive. Strings between
+pipes (`|what|`) in the [FORMAT](#format-template-text-) are replaced by the
 corresponding values from each record. (The precise functionalities of the
 various directives are also [defined among the “Technical
 details”](#technical-details-template-directives) below.)
@@ -145,10 +145,10 @@ up to you.
 ### Generic lists
 
 The main method for filling the templates with data is a combination of
-[RMISCLIST](#rmisclist-type1-type2) and [FORMAT](#format-template-text)
+[RMISCLIST](#rmisclist-type1type2) and [FORMAT](#format-template-text-)
 directives. These provide almost complete flexibility because you can define
 whatever fields you want in your log files and get them inserted by writing a
-[FORMAT](#format-template-text) directive.
+[FORMAT](#format-template-text-) directive.
 
 *Important!* When fields from the logs are inserted into the templates, they
 are escaped for LaTeX and HTML as appropriate. So if you write
@@ -177,11 +177,11 @@ in: alphabetically by file name, beginning to end. Since I name my files
 chronologically and append records to them as I do things, this works out to
 reverse chronological order, which is generally what you want.
 
-As for filtering, the [RMISCLIST](#rmisclist-type1-type2) directives select
+As for filtering, the [RMISCLIST](#rmisclist-type1type2) directives select
 log records of only a certain type, where the “type” is defined by the word
 inside square brackets beginning each record (e.g., `[talk]`). The
-[RMISCLIST_IF](#rmisclist-if-type1-type2-gatefield) and
-[RMISCLIST_IF_NOT](#rmisclist-if-not-type1-type2-gatefield) directives further
+[RMISCLIST_IF](#rmisclist_if-type1type2-gatefield) and
+[RMISCLIST_IF_NOT](#rmisclist_if_not-type1type2-gatefield) directives further
 filter checking whether a field in each record is equal to `y`, with a missing
 field being treated as `n`.
 
@@ -295,10 +295,11 @@ The `cite_info` function uses the above information to create the following fiel
   month is nonbreaking.
 * `refereed_mark` — a guillemet (») if the publication has `refereed` equal to `y`;
   nothing otherwise.
-* `short_authors` — a shortened author list; either “Foo”, “Foo & Bar”, “Foo, Bar,
-  Baz”, or “Foo et al.”. Only surnames are included. If the `MYABBREVNAME`
-  directive has been used, your name (as determined from `mypos`) is replaced with
-  an abbreviated value, so that the author list might read “PKGW & Bower”.
+* `short_authors` — a shortened author list; either “Foo”, “Foo & Bar”, “Foo,
+  Bar, Baz”, or “Foo et al.”. Only surnames are included. If the
+  [MYABBREVNAME](#myabbrevname-text-) directive has been used, your name (as
+  determined from `mypos`) is replaced with an abbreviated value, so that the
+  author list might read “PKGW & Bower”.
 * `year` — the numerical year of publication.
 
 The groups that publications can be sorted into are:
@@ -441,15 +442,15 @@ whitespace.
 ### CITESTATS {subtemplate-name}
 
 Inserts a snippet of text with citation statistics following a sub-template.
-The sub-template is searched for first in the path
-`templates/{template-name}`, then in `{toolsdir}/templates/{template-name}`,
+The sub-template is searched for first at the file name
+`templates/{template-name}`, then at `{toolsdir}/templates/{template-name}`,
 where `{toolsdir}` is the directory containing the [wltool](wltool) script. We
 provide a default version called
 [templates/citestats.frag.txt](templates/citestats.frag.txt).
 
-That sub-template resembles a `FRAGMENT` directive in that it should contain
-pipe-delimited field names that will be substituted with computed values.
-Possible fields are:
+That sub-template resembles a [FORMAT](#format-template-text-) directive in
+that it should contain pipe-delimited field names that will be substituted
+with computed values. Possible fields are:
 
 * `day` — the numerical day of the month of the median date when citations
   were updated.
@@ -476,11 +477,11 @@ So basically, yes, they do.</p>
 ### FORMAT {template text ...}
 
 This sets the template text that will be used by subsequent
-[PUBLIST](#publist-group), and [RMISCLIST](#rmisclist-type1-type2)-variant
-commands, until a new `FORMAT` directive is issued. For each record produced
-by these commands, the template text will be inserted, with field names
-delimited by pipes (e.g., `|title|`) getting replaced by data from the
-records. Missing fields are an error.
+[PUBLIST](#publist-group), and [RMISCLIST](#rmisclist-type1type2)-variant
+commands, until a new [FORMAT](#format-template-text-) directive is issued. For
+each record produced by these commands, the template text will be inserted,
+with field names delimited by pipes (e.g., `|title|`) getting replaced by data
+from the records. Missing fields are an error.
 
 Note that this directive (and all others) must appear on a single line, so it
 gets a little awkward if you have a very long piece of template text.
@@ -520,16 +521,15 @@ PUBLIST all
 ### PUBLIST {group}
 
 Causes data for a group of publications to be inserted according to the most
-recently-specified [FORMAT](#format-template-text) template. The `group` is
+recently-specified [FORMAT](#format-template-text-) template. The `group` is
 one of the “partitions” defined in [the publication processing
-documentation](#technical-details-publication-processing). The
-[FORMAT](#format-template-text) template is inserted once for each publication
-in the specified `group`.
+section](#technical-details-publication-processing). The
+[FORMAT](#format-template-text-) template is inserted once for each
+publication in the specified `group`.
 
 The template has access to all of the fields defined in your matching `[pub]`
 records, as well as the numerous extra fields computed as described in [the
-publication processing
-documentation](#technical-details-publication-processing)
+publication processing section](#technical-details-publication-processing)
 
 Example:
 
@@ -545,9 +545,9 @@ PUBLIST refereed_rev
 ### RMISCLIST {type1[,type2,...]}
 
 Causes worklog data to be inserted according to the most recently-specified
-[FORMAT](#format-template-text) directive. Records matching any of the
+[FORMAT](#format-template-text-) directive. Records matching any of the
 comma-separated list of `type`s will be output in reversed order, with the
-[FORMAT](#format-template-text) template being inserted once for each record.
+[FORMAT](#format-template-text-) template being inserted once for each record.
 
 Example:
 
@@ -561,7 +561,7 @@ RMISCLIST placesilike
 
 ### RMISCLIST_IF {type1[,type2,...]} {gatefield}
 
-The same as [RMISCLIST](#rmisclist-type1-type2), except that matching records
+The same as [RMISCLIST](#rmisclist-type1type2), except that matching records
 will be output only if they have the field named `gatefield` and its value is
 precisely “y”.
 
@@ -577,7 +577,7 @@ RMISCLIST_IF placesilike ilikeit
 
 ### RMISCLIST_IF_NOT {type1[,type2,...]} {gatefield}
 
-The same as [RMISCLIST](#rmisclist-type1-type2), except that matching records
+The same as [RMISCLIST](#rmisclist-type1type2), except that matching records
 will be output only if either they do not have the field named `gatefield`, or
 its value is not precisely “y”.
 
