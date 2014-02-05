@@ -620,7 +620,42 @@ TODAY.
 Technical details: the ini file format
 --------------------------------------
 
-To be written.
+The [“ini file”][inifile] format is implemented in the
+[inifile.py](inifile.py) module.
+
+Each file is a line-oriented Unicode text file encoded in UTF-8.
+
+Any text in a line at or after a pound sign (“#”) is ignored, except for
+quoted field values as described below.
+
+A line of the form “[.....]{whitespace}” denotes a new record. The text
+between the brackets is saved in a field called `section`.
+
+Data lines take the form “{fieldname}{whitespace}={value}”. Field names can be
+anything without spaces, but should take the form of valid Python identifiers.
+
+If the field value is encased in straight double quotes, the text inside
+the quotes is stored verbatim. This includes leading and trailing whitespace
+and pound signs.
+
+Otherwise, the field value is constructed from the text after the equals sign,
+plus text on subsequent lines if those lines begin with whitespace. Leading
+and trailing whitespace of the resulting value are removed, and the
+newline/whitespace combination is replaced with a single space.
+
+Example:
+
+```INI
+# This is a comment
+[pub] # and this
+title = This is a somewhat long title and so we wrap it onto
+  the next line
+# But not the next pound sign:
+cite = "Exciting Committee whitepaper #32"
+authors = Peter K. G. Williams
+myfield = εχαμπλε
+equation = y²×π
+```
 
 
 Copyright and license status of this document
