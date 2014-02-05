@@ -666,8 +666,8 @@ System requirements
 The tools should be broadly portable, but they do have a few requirements:
 
 * Python. Version 2.6 or higher should work. Only standard modules are used.
-* To drive processing with the example `Makefile`, you need command-line
-  access to `pdflatex` and (of course) `make`.
+* To drive processing with the example [Makefile](example/Makefile), you need
+  command-line access to `pdflatex` and (of course) `make`.
 * The following LaTeX packages are used:
   * [enumitem](http://www.ctan.org/pkg/enumitem)
   * [fancyhdr](http://www.ctan.org/pkg/fancyhdr)
@@ -675,6 +675,7 @@ The tools should be broadly portable, but they do have a few requirements:
   * [hyperref](http://www.ctan.org/pkg/hyperref)
   * [lastpage](http://www.ctan.org/pkg/lastpage)
   * [titlesec](http://www.ctan.org/pkg/titlesec)
+
   These should all be available on modern LaTeX installs, and I’ve tried
   to avoid constructs that aren’t compatible across many versions.
 
