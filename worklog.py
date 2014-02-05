@@ -679,8 +679,8 @@ _ads_url_tmpl = (r'http://adsabs.harvard.edu/cgi-bin/nph-abs_connect?'
 
 
 def get_ads_cite_count (bibcode):
-    from urllib2 import urlopen
-    url = _ads_url_tmpl % {'bibcode': bibcode}
+    from urllib2 import urlopen, quote
+    url = _ads_url_tmpl % {'bibcode': quote (bibcode)}
     lastnonempty = None
 
     for line in urlopen (url):
