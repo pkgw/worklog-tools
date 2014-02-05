@@ -28,8 +28,10 @@ automating the generation of your own CV. The log format is flexible and the
 scripts are simple, so the sky’s the limit in terms of what effects you can
 achieve.
 
-Also, I like to think that my LaTeX CV template is pretty nice. [Here’s my
-CV](http://newton.cx/~peter/files/cv.pdf).
+Also, I like to think that my LaTeX templates are pretty nice. Here are [my
+printable CV](http://newton.cx/~peter/files/cv.pdf) and [my publications
+list](http://newton.cx/~peter/files/pubs.pdf). Here’s my [online publications
+list](http://newton.cx/~peter/pubs/).
 
 
 Diving in
@@ -117,8 +119,8 @@ Then there are two things to work on: customizing the templates, and entering
 your previous accomplishments into log files. You’ll probably edit these
 hand-in-hand as you decide what things to include in your CV and how you want
 to express them in your log files. Obviously, for some things it makes more
-sense just to put them directly in the templates, rather than using the
-templating system.
+sense just to put them directly in the templates, rather than filling in
+fields from the log files.
 
 Unsurprisingly, the templates get filled by running the [wltool](wltool)
 program. It has several subcommands that [are documented
@@ -185,9 +187,9 @@ To extend this behavior, you’re going to need to edit
 
 ### Publication lists
 
-Publications (`[pub]` records) follow a more detailed format to allow
-automatic fetching of citation counts, generation of reference lists with
-links, and computation of statistics such as the *h*-index.
+Publications are listed in `[pub]` records. These follow a more detailed
+format to allow automatic fetching of citation counts, generation of reference
+lists with links, and computation of statistics such as the *h*-index.
 
 Publication records are read in and then “partitioned” into various groups
 (i.e., “refereed”, “non-refereed”) by the `partition_pubs` function in
@@ -317,11 +319,110 @@ Technical details: wltool invocation
 
 Here are the subcommands supported by the [wltool](wltool) program:
 
-### extract
-### html
-### latex
-### summarize
-### update-cites
+### extract {record-type} [datadir=.]
+
+This is a sort of `grep` for your log files. It merely reads them all in and
+prints out all of the records whose type matches `record-type`. This can be
+useful for scripting or reminding yourself what fields you used for a certain
+kind of entry.
+
+The optional argument `datadir` specifies where the log files are; the default
+is the current directory.
+
+Example:
+
+```Shell
+$ ./wltool extract pub
+[pub]
+title = An amazing paper
+… lots more output …
+$
+```
+
+### html {template-file} [datadir=.]
+
+Fill in the specified `template-file` by processing the directives [described
+below](#technical-details-template-directives). The filled-in template is
+printed to standard output. The output is assumed to be in HTML format; in
+particular, this means that special characters are encoded in Unicode with
+UTF-8, and certain fancy text effects (making text bold, for instance) are
+done with HTML tags.
+
+The optional argument `datadir` specifies where the log files are; the default
+is the current directory.
+
+Example:
+
+```Shell
+$ ./wltool html pubslist.tmpl.html >pubslist.html
+$
+```
+
+### latex {template-file} [datadir=.]
+
+Operates exactly as the `html` subcommand, except that the output is assumed
+to be in LaTeX format. Special characters are converted to LaTeX escapes
+(e.g., “α” → “\alpha”) and text effects are done with LaTeX constructs (e.g.,
+“\textbf{…}”).
+
+Example:
+
+```Shell
+$ ./wltool html cv.tmpl.tex >cv.tex
+$
+```
+
+### summarize [datadir=.]
+
+Print out the number of records of each type in your log files.
+
+The optional argument `datadir` specifies where the log files are; the default
+is the current directory.
+
+Example:
+
+```Shell
+$ ./wltool summarize
+   award: 1
+     job: 2
+outreach: 2
+    prop: 1
+     pub: 10
+    talk: 13
+teaching: 1
+$
+```
+
+### update-cites [datadir=.]
+
+Updates citation counts for publications from [NASA ADS].
+
+For each record in the log files with a `bibcode` field, the script connects
+to the ADS website and fetches the number of citations. The log files are
+modified in-place to have the citation counts inserted into each record in a
+field called `adscites`. The `adscites` field records the date that citation
+counts were last checked, and the script won’t update check counts more
+frequently than once a week.
+
+As the updates are conducted, the script will print out each bibcode and the
+change in the number of citations it has received. Records will be annotated
+with an asterisk if they’re first-author publications and an “R” if they’re
+refereed.
+
+The optional argument `datadir` specifies where the log files are; the default
+is the current directory.
+
+Example:
+
+```Shell
+$ ./wltool update-cites
+2012arXiv1201.5413W *  ... 0 (+0)
+2012PASP..124..624W *R ... 4 (+0)
+2013ApJ...762...85W *R ... 1 (+0)
+2013PASA...30....6M  R ... 12 (+1)
+…
+$
+```
 
 
 Technical details: template directives
