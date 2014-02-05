@@ -96,10 +96,11 @@ RMISCLIST_IF_NOT talk invited
 ```
 
 The lines beginning with ALL_CAPS trigger actions in the templating scripts.
-The `RMISCLIST_IF` directive writes a sequence of `[talk]` records in reversed
-order, filtering for an `invited` field equal to `y`. Each record is
-LaTeXified using the template specified in the most recent `FORMAT` directive.
-Strings between pipes (`|what|`) in the `FORMAT` are replaced by the
+The [RMISCLIST_IF](#rmisclist-if-type1-type2-gatefield) directive writes a
+sequence of `[talk]` records in reversed order, filtering for an `invited`
+field equal to `y`. Each record is LaTeXified using the template specified in
+the most recent [FORMAT](#format-template-text) directive. Strings between
+pipes (`|what|`) in the [FORMAT](#format-template-text) are replaced by the
 corresponding values from each record. (The precise functionalities of the
 various directives are also [defined among the “Technical
 details”](#technical-details-template-directives) below.)
@@ -144,9 +145,10 @@ up to you.
 ### Generic lists
 
 The main method for filling the templates with data is a combination of
-`RMISCLIST` and `FORMAT` directives. These provide almost complete flexibility
-because you can define whatever fields you want in your log files and get them
-inserted by writing a `FORMAT` directive.
+[RMISCLIST](#rmisclist-type1-type2) and [FORMAT](#format-template-text)
+directives. These provide almost complete flexibility because you can define
+whatever fields you want in your log files and get them inserted by writing a
+[FORMAT](#format-template-text) directive.
 
 *Important!* When fields from the logs are inserted into the templates, they
 are escaped for LaTeX and HTML as appropriate. So if you write
@@ -175,11 +177,13 @@ in: alphabetically by file name, beginning to end. Since I name my files
 chronologically and append records to them as I do things, this works out to
 reverse chronological order, which is generally what you want.
 
-As for filtering, the `RMISCLIST` directives select log records of only a
-certain type, where the “type” is defined by the word inside square brackets
-beginning each record (e.g., `[talk]`). The `RMISCLIST_IF` and
-`RMISCLIST_IF_NOT` directives further filter checking whether a field in each
-record is equal to `y`, with a missing field being treated as `n`.
+As for filtering, the [RMISCLIST](#rmisclist-type1-type2) directives select
+log records of only a certain type, where the “type” is defined by the word
+inside square brackets beginning each record (e.g., `[talk]`). The
+[RMISCLIST_IF](#rmisclist-if-type1-type2-gatefield) and
+[RMISCLIST_IF_NOT](#rmisclist-if-not-type1-type2-gatefield) directives further
+filter checking whether a field in each record is equal to `y`, with a missing
+field being treated as `n`.
 
 To extend this behavior, you’re going to need to edit
 [worklog.py](worklog.py). See the `cmd_rev_misc_list*` functions and
@@ -193,10 +197,11 @@ lists with links, and computation of statistics such as the *h*-index.
 
 Publication records are read in and then “partitioned” into various groups
 (i.e., “refereed”, “non-refereed”) by the `partition_pubs` function in
-[worklog.py](worklog.py). The `PUBLIST` directive causes one of these groups
-to be output, with the crucial wrinkle that each record is augmented with a
-variety of extra fields to allow various special effects. This augmentation is
-done in the `cite_info` function in [worklog.py](worklog.py).
+[worklog.py](worklog.py). The [PUBLIST](#publist-group) directive causes one
+of these groups to be output, with the crucial wrinkle that each record is
+augmented with a variety of extra fields to allow various special effects.
+This augmentation is done in the `cite_info` function in
+[worklog.py](worklog.py).
 
 If you want to group your publications differently (i.e. “refereed
 first-author”), then, you’ll need to edit `partition_pubs`. To change citation
@@ -209,9 +214,9 @@ section](#technical-details-publication-processing).
 
 There are also some more specialized templating directives that are [fully
 documented below](#technical-details-template-directives). Of particular
-interest are `TODAY.`, which inserts the current date, and `CITESTATS`, which
-inserts some citation statistics based on the information gathered from [NASA
-ADS].
+interest are [TODAY.](#today), which inserts the current date, and
+[CITESTATS](#citestats-subtemplate-name), which inserts some citation
+statistics based on the information gathered from [NASA ADS].
 
 
 Technical details: publication processing
@@ -429,16 +434,175 @@ Technical details: template directives
 --------------------------------------
 
 Here are the directives supported by the template processor. Each directive is
-recognized when it appears at the very beginning of a line in a template.
+recognized when it appears at the very beginning of a line in a template. Most
+of the directives take arguments that appear on the same line, separated by
+whitespace.
 
-* CITESTATS
-* FORMAT
-* MYABBREVNAME
-* PUBLIST
-* RMISCLIST
-* RMISCLIST_IF
-* RMISCLIST_IF_NOT
-* TODAY.
+### CITESTATS {subtemplate-name}
+
+Inserts a snippet of text with citation statistics following a sub-template.
+The sub-template is searched for first in the path
+`templates/{template-name}`, then in `{toolsdir}/templates/{template-name}`,
+where `{toolsdir}` is the directory containing the [wltool](wltool) script. We
+provide a default version called
+[templates/citestats.frag.txt](templates/citestats.frag.txt).
+
+That sub-template resembles a `FRAGMENT` directive in that it should contain
+pipe-delimited field names that will be substituted with computed values.
+Possible fields are:
+
+* `day` — the numerical day of the month of the median date when citations
+  were updated.
+* `hindex` — your numerical *h*-index.
+* `italich` — a bit of a hack; code for the letter “h” in italics, appropriate
+  for either LaTeX or HTML as needed.
+* `meddate` — the median *Unix time* around which citations were updated.
+* `month` — the numerical month of the median date when citations were updated.
+* `monthstr` — the three-letter abbreviated month of the median date when
+   citations were updated.
+* `refcites` — the total number of citations to refereed publications
+* `reffirstauth` — the total number of refereed first-author publications
+* `refpubs` — the total number of refereed publications
+* `year` — the year of the median date around which citations were updated.
+
+Example:
+
+```HTML
+<p>Do people cite me?
+CITESTATES citestats.frag.txt
+So basically, yes, they do.</p>
+```
+
+### FORMAT {template text ...}
+
+This sets the template text that will be used by subsequent
+[PUBLIST](#publist-group), and [RMISCLIST](#rmisclist-type1-type2)-variant
+commands, until a new `FORMAT` directive is issued. For each record produced
+by these commands, the template text will be inserted, with field names
+delimited by pipes (e.g., `|title|`) getting replaced by data from the
+records. Missing fields are an error.
+
+Note that this directive (and all others) must appear on a single line, so it
+gets a little awkward if you have a very long piece of template text.
+
+Example:
+
+```TeX
+FORMAT \item[|date|] |what|
+
+\begin{enumerate}
+RMISCLIST outreach
+\end{enumerate}
+```
+
+### MYABBREVNAME {text ...}
+
+This directive turns on special replacement of your name in short author
+lists; it allows the style of citing your own works as (e.g.) “PKGW & Bower”
+rather than “Williams & Bower”. The `text` is this shortened version of your
+name.
+
+This feature only affects the `short_authors` field of publications;
+`full_authors` is not modified. If you don’t use this directive,
+`short_authors` doesn’t get modified either.
+
+Example:
+
+```
+MYABBREVNAME PKGW
+
+…
+
+FORMAT Short authors: |short_authors|
+PUBLIST all
+```
+
+### PUBLIST {group}
+
+Causes data for a group of publications to be inserted according to the most
+recently-specified [FORMAT](#format-template-text) template. The `group` is
+one of the “partitions” defined in [the publication processing
+documentation](#technical-details-publication-processing). The
+[FORMAT](#format-template-text) template is inserted once for each publication
+in the specified `group`.
+
+The template has access to all of the fields defined in your matching `[pub]`
+records, as well as the numerous extra fields computed as described in [the
+publication processing
+documentation](#technical-details-publication-processing)
+
+Example:
+
+```HTML
+FORMAT <dt>|pubdate|</dt><dd>|title|</dd>
+
+<h1>Refereed publications</h1>
+<dl>
+PUBLIST refereed_rev
+</dl>
+```
+
+### RMISCLIST {type1[,type2,...]}
+
+Causes worklog data to be inserted according to the most recently-specified
+[FORMAT](#format-template-text) directive. Records matching any of the
+comma-separated list of `type`s will be output in reversed order, with the
+[FORMAT](#format-template-text) template being inserted once for each record.
+
+Example:
+
+```TeX
+FORMAT |institution| & |city| \cr
+
+\begin{tabular}{rl}
+RMISCLIST placesilike
+\end{tabular}
+```
+
+### RMISCLIST_IF {type1[,type2,...]} {gatefield}
+
+The same as [RMISCLIST](#rmisclist-type1-type2), except that matching records
+will be output only if they have the field named `gatefield` and its value is
+precisely “y”.
+
+Example:
+
+```TeX
+FORMAT |institution| & |city| \cr
+
+\begin{tabular}{rl}
+RMISCLIST_IF placesilike ilikeit
+\end{tabular}
+```
+
+### RMISCLIST_IF_NOT {type1[,type2,...]} {gatefield}
+
+The same as [RMISCLIST](#rmisclist-type1-type2), except that matching records
+will be output only if either they do not have the field named `gatefield`, or
+its value is not precisely “y”.
+
+Example:
+
+```TeX
+FORMAT |institution| & |city| \cr
+
+\begin{tabular}{rl}
+RMISCLIST_IF_NOT placesilike ihateit
+\end{tabular}
+```
+
+### TODAY.
+
+Inserts the current day as “{Mon} {day}, {year}.” Both the directive name and
+the output include the trailing period! Here `{Mon}` is the three-letter
+abbreviated month name.
+
+Example:
+
+```
+This document was last updated
+TODAY.
+```
 
 
 Technical details: the ini file format
