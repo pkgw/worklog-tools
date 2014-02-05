@@ -34,6 +34,18 @@ list](http://newton.cx/~peter/files/pubs.pdf). Here’s my [online publications
 list](http://newton.cx/~peter/pubs/).
 
 
+Contents
+--------
+
+* [Diving in](#diving-in)
+* [Using the tools for your own documents](#using-the-tools-for-your-own-documents)
+* [Technical details: publication
+  processing](#technical-details-publication-processing)
+* [Technical details: wltool invocation](#technical-details-wltool-invocation)
+* [Technical details: template directives](#technical-details-template-directives)
+* [Technical details: the ini file format](#technical-details-the-ini-file-format)
+
+
 Diving in
 ---------
 
