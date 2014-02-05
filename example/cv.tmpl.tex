@@ -38,7 +38,8 @@
 \newlength{\mainindent} \setlength{\mainindent}{12pt}
 \newlength{\contentindent} \setlength{\contentindent}{19ex}
 
-\setlist[itemize]{nosep}
+% "nosep" is shorthand here, but may have compatibility issues.
+\setlist[itemize]{topsep=0pt,partopsep=0pt,parsep=0pt,itemsep=0pt}
 
 \newenvironment{datelist}{
   \begingroup
