@@ -44,6 +44,7 @@ Contents
 * [Technical details: wltool invocation](#technical-details-wltool-invocation)
 * [Technical details: template directives](#technical-details-template-directives)
 * [Technical details: the ini file format](#technical-details-the-ini-file-format)
+* [System requirements](#system-requirements)
 
 
 Diving in
@@ -657,6 +658,25 @@ authors = Peter K. G. Williams
 myfield = εχαμπλε
 equation = y²×π
 ```
+
+
+System requirements
+-------------------
+
+The tools should be broadly portable, but they do have a few requirements:
+
+* Python. Version 2.6 or higher should work. Only standard modules are used.
+* To drive processing with the example `Makefile`, you need command-line
+  access to `pdflatex` and (of course) `make`.
+* The following LaTeX packages are used:
+  * [enumitem](http://www.ctan.org/pkg/enumitem)
+  * [fancyhdr](http://www.ctan.org/pkg/fancyhdr)
+  * [geometry](http://www.ctan.org/pkg/geometry)
+  * [hyperref](http://www.ctan.org/pkg/hyperref)
+  * [lastpage](http://www.ctan.org/pkg/lastpage)
+  * [titlesec](http://www.ctan.org/pkg/titlesec)
+  These should all be available on modern LaTeX installs, and I’ve tried
+  to avoid constructs that aren’t compatible across many versions.
 
 
 Copyright and license status of this document
