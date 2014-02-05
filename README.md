@@ -625,13 +625,13 @@ The [“ini file”][inifile] format is implemented in the
 
 Each file is a line-oriented Unicode text file encoded in UTF-8.
 
-Any text in a line at or after a pound sign (“#”) is ignored, except for
+Any text in a line at or after a pound sign (`#`) is ignored, except for
 quoted field values as described below.
 
-A line of the form “[.....]{whitespace}” denotes a new record. The text
+A line of the form `[.....]{whitespace}` denotes a new record. The text
 between the brackets is saved in a field called `section`.
 
-Data lines take the form “{fieldname}{whitespace}={value}”. Field names can be
+Data lines take the form `{field name}{whitespace}={value}`. Field names can be
 anything without spaces, but should take the form of valid Python identifiers.
 
 If the field value is encased in straight double quotes, the text inside
@@ -647,7 +647,8 @@ Example:
 
 ```INI
 # This is a comment
-[pub] # and this
+[pub]
+pubdate = 2011/09 # and this
 title = This is a somewhat long title and so we wrap it onto
   the next line
 # But not the next pound sign:
