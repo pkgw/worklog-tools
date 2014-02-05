@@ -9,7 +9,7 @@ it in documents like CVs or publication lists.
 Two reasons:
 
 * I want to have my CV and publications list available in both nicely
-  *printable and* slick web-native formats … without having to keep two very
+  printable and slick web-native formats … without having to keep two very
   different documents in sync.
 * I want my CV to include things like my *h*-index, citation counts, total
   telescope time allocated, and so on. (Oh, by the way: I’m an astronomer.)
