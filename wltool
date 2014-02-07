@@ -57,6 +57,32 @@ Parsing files from other origins will probably fail."""
         bootstrap_bibtex (bibfile, outdir, mysurname)
 
 
+def cli_extract (argv):
+    """usage: wltool extract <section-name> [datadir]
+
+Print out all records with the given section name. If not specified, the data
+directory is assumed to be the current directory.
+
+See the README.md that came with this package for more detailed information."""
+
+
+    from inifile import write
+    import sys
+
+    if len (argv) not in (2, 3) or '--help' in argv:
+        print cli_extract.__doc__
+        raise SystemExit (1)
+
+    sectname = argv[1]
+
+    if len (argv) < 3:
+        datadir = '.'
+    else:
+        datadir = argv[2]
+
+    write (sys.stdout, (i for i in load (datadir) if i.section == sectname))
+
+
 def _cli_render (argv):
     """usage: wltool %s <template> [datadir=.]
 
@@ -95,32 +121,6 @@ See the README.md that came with this package for more detailed information."""
 
 cli_latex = _cli_render
 cli_html = _cli_render
-
-
-def cli_extract (argv):
-    """usage: wltool extract <section-name> [datadir]
-
-Print out all records with the given section name. If not specified, the data
-directory is assumed to be the current directory.
-
-See the README.md that came with this package for more detailed information."""
-
-
-    from inifile import write
-    import sys
-
-    if len (argv) not in (2, 3) or '--help' in argv:
-        print cli_extract.__doc__
-        raise SystemExit (1)
-
-    sectname = argv[1]
-
-    if len (argv) < 3:
-        datadir = '.'
-    else:
-        datadir = argv[2]
-
-    write (sys.stdout, (i for i in load (datadir) if i.section == sectname))
 
 
 def cli_summarize (argv):
