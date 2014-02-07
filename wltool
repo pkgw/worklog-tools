@@ -7,16 +7,40 @@
 
 workog commands are:
 
-  extract        Print out worklog records of a specific type
-  html           Fill in an HTML-formatted template
-  latex          Fill in a LaTeX-formatted template
-  summarize      Summarize the records present in the worklog data files
-  update-cites   Update ADS citation counts in the worklog data files
+  bootstrap-bibtex  Stub publication records from an ADS BibTeX file
+  extract           Print out worklog records of a specific type
+  html              Fill in an HTML-formatted template
+  latex             Fill in a LaTeX-formatted template
+  summarize         Summarize the records present in the worklog data files
+  update-cites      Update ADS citation counts in the worklog data files
 
 Running 'wltool <command> --help' may give more information on the command
 in question."""
 
 from worklog import *
+
+
+def cli_bootstrap_bibtex (argv):
+    import os.path
+
+    # note: we'll leave the output directory lying around if we die. I figure
+    # that could be helpful for debugging.
+
+    if len (argv) != 4:
+        die ('usage: wltool bootstrap-bibtex <bibtex-file> <your-surname> <output-dir>')
+
+    bibpath = argv[1]
+    mysurname = argv[2]
+    outdir = argv[3]
+
+    try:
+        os.mkdir (outdir)
+    except Exception as e:
+        die ('cannot create output directory "%s": %s (%s)', outdir,
+             e, e.__class__.__name__)
+
+    with open (bibpath) as bibfile:
+        bootstrap_bibtex (bibfile, outdir, mysurname)
 
 
 def _cli_render (argv):
@@ -133,6 +157,8 @@ def cli_update_cites (argv):
             item.set ('adscites', nowstr + str (newcites))
             print '%d (%+d)' % (newcites, newcites - curcites)
 
+
+# The dispatcher
 
 if __name__ == '__main__':
     import sys

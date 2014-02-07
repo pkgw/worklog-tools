@@ -15,7 +15,7 @@ __all__ = ('nbsp months '
            'parse_ads_cites canonicalize_name surname best_url cite_info '
            'compute_cite_stats partition_pubs '
            'setup_processing '
-           'get_ads_cite_count').split ()
+           'get_ads_cite_count bootstrap_bibtex').split ()
 
 nbsp = u'\u00a0'
 months = 'Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'.split ()
@@ -702,3 +702,182 @@ def get_ads_cite_count (bibcode):
              lastnonempty, bibcode)
 
     return count
+
+
+# Bootstrapping from a BibTeX file. This is currently aimed 100% at
+# ADS-generated BibTeX; it'd be nice to make it more general.
+
+def _write_with_wrapping (outfile, key, value):
+    # we assume whitespace is fungible.
+
+    if '#' in value:
+        print >>outfile, ('%s = "%s"' % (key, value)).encode ('utf-8')
+        return
+
+    bits = value.split ()
+    ofs = len (key) + 2
+    head = 0
+    tail = 0
+
+    while tail < len (bits):
+        ofs += len (bits[tail]) + 1
+        tail += 1
+
+        if ofs > 78:
+            if head == 0:
+                s = '%s = %s' % (key, ' '.join (bits[head:tail]))
+            else:
+                s = '  %s' % (' '.join (bits[head:tail]))
+            print >>outfile, s.encode ('utf-8')
+            head = tail
+            ofs = 1
+
+    if head == 0:
+        s = '%s = %s' % (key, ' '.join (bits[head:tail]))
+    elif head < len (bits):
+        s = '  %s' % (' '.join (bits[head:tail]))
+    else:
+        return
+
+    print >>outfile, s.encode ('utf-8')
+
+
+def _bib_fixup_author (text):
+    text = text.replace ('{', '').replace ('}', '').replace ('~', ' ')
+    surname, rest = text.split (',', 1)
+    return rest + ' ' + surname.replace (' ', '_')
+
+
+_bib_months = {'jan': '01', 'feb': '02', 'mar': '03', 'apr': '04',
+               'may': '05',  'jun': '06',  'jul': '07',  'aug': '08',
+               'sep': '09',  'oct': '10',  'nov': '11',  'dec': '12'}
+
+_bib_journals = {'\\aap': 'A&Ap', '\\aj': 'AJ', '\\apj': 'ApJ',
+                 '\\apjl': 'ApJL', '\\apjs': 'ApJS', '\\araa': 'ARA&A',
+                 '\\mnras': 'MNRAS', '\\pasa': 'PASA'}
+
+
+def _bib_cite (rec):
+    if 'journal' in rec and 'volume' in rec and 'pages' in rec:
+        return ' '.join ((rec['journal'], rec['volume'], rec['pages']))
+
+    if 'series' in rec and 'volume' in rec and 'pages' in rec:
+        return ' '.join ((rec['series'], rec['volume'], rec['pages']))
+
+    if rec.get ('type') == 'inproceedings' and 'booktitle' in rec and 'pages' in rec:
+        return u'proceedings of “%s”, %s' % (rec['booktitle'], rec['pages'])
+
+    if rec.get ('journal') == u'ArXiv e-prints' and 'eprint' in rec:
+        return u'arxiv:' + rec['eprint']
+
+    return None
+
+
+class BibCustomizer (object):
+    # By "customize" the bibtexparser module just means post-processing. These
+    # are a bunch of ad-hoc hacks based on what ADS gives us.
+
+    def __init__ (self, mysurname):
+        self.mylsurname = mysurname.lower ()
+
+    def __call__ (self, rec):
+        from bibtexparser.customization import author, type, convert_to_unicode
+        rec = type (convert_to_unicode (rec))
+
+        for key in rec.keys ():
+            val = rec.get (key)
+            val = (val
+                   .replace ('{\\nbsp}', nbsp)
+                   .replace ('``', u'“')
+                   .replace ("''", u'”'))
+            rec[key] = val
+
+        if 'journal' in rec:
+            rec['journal'] = _bib_journals.get (rec['journal'].lower (),
+                                                rec['journal'])
+
+        rec = author (rec)
+
+        if 'author' in rec:
+            newauths = []
+
+            for idx, text in enumerate (rec['author']):
+                text = text.replace ('{', '').replace ('}', '').replace ('~', ' ')
+                surname, rest = text.split (',', 1)
+                if surname.lower () == self.mylsurname:
+                    rec['wl_mypos'] = unicode (idx + 1)
+                newauths.append (rest + ' ' + surname.replace (' ', '_'))
+
+            rec['author'] = '; '.join (newauths)
+
+        rec['wl_cite'] = _bib_cite (rec)
+        return rec
+
+
+def bootstrap_bibtex (bibfile, outdir, mysurname):
+    import os.path
+
+    # XXX we assume heavily that we're dealing with ADS bibtex.
+
+    from bibtexparser.bparser import BibTexParser
+    bp = BibTexParser (bibfile, customization=BibCustomizer (mysurname))
+    byyear = {}
+
+    for rec in bp.get_entry_list ():
+        year = rec.get ('year', 'noyear')
+
+        if year in byyear:
+            outfile = byyear[year]
+        else:
+            outfile = open (os.path.join (outdir, year + '.txt'), 'w')
+            byyear[year] = outfile
+            print >>outfile, '# -*- conf -*-'
+            print >>outfile, '# XXX for all records, refereed status is guessed crudely'
+
+        print >>outfile, '\n[pub]'
+
+        if 'title' in rec:
+            _write_with_wrapping (outfile, 'title', rec['title'])
+        else:
+            print >>outfile, 'title = ? # XXX no title for this record'
+
+        if 'author' in rec:
+            _write_with_wrapping (outfile, 'authors', rec['author'])
+        else:
+            print >>outfile, 'authors = ? # XXX no authors for this record'
+
+        if 'wl_mypos' in rec:
+            _write_with_wrapping (outfile, 'mypos', rec['wl_mypos'])
+        else:
+            print >>outfile, 'mypos = 0 # XXX cannot determine "mypos" for this record'
+
+        if 'year' in rec and 'month' in rec:
+            _write_with_wrapping (outfile, 'pubdate',
+                                  rec['year'] + '/' +
+                                  _bib_months.get (rec['month'].lower (),
+                                                   rec['month']))
+        elif 'year' in rec:
+            print >>outfile, 'pubdate = %s/01 # XXX actual month unknown' % rec['year']
+        else:
+            print >>outfile, 'pubdate = ? # XXX no year and month for this record'
+
+        if 'id' in rec:
+            _write_with_wrapping (outfile, 'bibcode', rec['id'])
+
+        if 'eprint' in rec:
+            _write_with_wrapping (outfile, 'arxiv', rec['eprint'])
+
+        if 'doi' in rec:
+            _write_with_wrapping (outfile, 'doi', rec['doi'])
+
+        refereed = 'journal' in rec
+        print >>outfile, 'refereed = %s' % 'ny'[refereed]
+
+        cite = _bib_cite (rec)
+        if cite is not None:
+            _write_with_wrapping (outfile, 'cite', cite)
+        else:
+            print >>outfile, 'cite = ? # XXX cannot infer citation text'
+
+    for f in byyear.itervalues ():
+        f.close ()
