@@ -21,13 +21,27 @@ from worklog import *
 
 
 def cli_bootstrap_bibtex (argv):
+    """usage: wltool bootstrap-bibtex <bibtex-file> <your-surname> <output-dir>
+
+Create a new set of worklog files, seeding them with publication information
+gathered from from <bibtex-file>. Specify <your-surname> to assist in guessing
+of the "mypos" field (your position in the author list). The output directory
+<output-dir> must not exist when you run the program; this is to avoid
+accidental overwriting of existing files.
+
+Search the output files for "XXX" to find issues that need manual attention.
+
+WARNING: the current implementation assumes that the file is one from ADS.
+Parsing files from other origins will probably fail."""
+
     import os.path
 
     # note: we'll leave the output directory lying around if we die. I figure
     # that could be helpful for debugging.
 
-    if len (argv) != 4:
-        die ('usage: wltool bootstrap-bibtex <bibtex-file> <your-surname> <output-dir>')
+    if len (argv) != 4 or '--help' in argv:
+        print cli_bootstrap_bibtex.__doc__
+        raise SystemExit (1)
 
     bibpath = argv[1]
     mysurname = argv[2]
@@ -163,7 +177,7 @@ def cli_update_cites (argv):
 if __name__ == '__main__':
     import sys
 
-    if len (sys.argv) < 2 or '--help' in sys.argv:
+    if len (sys.argv) < 2 or sys.argv[1] == '--help':
         print __doc__
         raise SystemExit (0)
 
