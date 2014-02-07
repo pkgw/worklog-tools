@@ -58,10 +58,19 @@ Parsing files from other origins will probably fail."""
 
 
 def _cli_render (argv):
+    """usage: wltool %s <template> [datadir=.]
+
+Process log files and use the information to fill in <template>.
+If not specified, the data directory is assumed to be the current
+directory.
+
+See the README.md that came with this package for more detailed information."""
+
     fmtname = argv[0]
 
-    if len (argv) not in (2, 3):
-        die ('usage: wltool %s <template> [datadir]', fmtname)
+    if len (argv) not in (2, 3) or '--help' in argv:
+        print _cli_render.__doc__ % fmtname
+        raise SystemExit (1)
 
     tmpl = argv[1]
 
@@ -89,11 +98,20 @@ cli_html = _cli_render
 
 
 def cli_extract (argv):
+    """usage: wltool extract <section-name> [datadir]
+
+Print out all records with the given section name. If not specified, the data
+directory is assumed to be the current directory.
+
+See the README.md that came with this package for more detailed information."""
+
+
     from inifile import write
     import sys
 
-    if len (argv) not in (2, 3):
-        die ('usage: wltool extract <section-name> [datadir]')
+    if len (argv) not in (2, 3) or '--help' in argv:
+        print cli_extract.__doc__
+        raise SystemExit (1)
 
     sectname = argv[1]
 
@@ -106,8 +124,16 @@ def cli_extract (argv):
 
 
 def cli_summarize (argv):
-    if len (argv) not in (1, 2):
-        die ('usage: wltool summarize [datadir]')
+    """usage: wltool summarize [datadir]
+
+Print out a summary of the different kinds of records in the log file. If not
+specified, the data directory is assumed to be the current directory.
+
+See the README.md that came with this package for more detailed information."""
+
+    if len (argv) not in (1, 2) or '--help' in argv:
+        print cli_summarize.__doc__
+        raise SystemExit (1)
 
     if len (argv) < 2:
         datadir = '.'
@@ -128,8 +154,16 @@ def cli_summarize (argv):
 _update_minwait = 7 * 24 * 3600 # 1 week
 
 def cli_update_cites (argv):
-    if len (argv) not in (1, 2):
-        die ('usage: wltool update-cites [datadir]')
+    """usage: wltool update-cites [datadir]
+
+Fetch citation counts from NASA ADS and insert them into the log files.
+Prints out a summary of new citations by bibcode.
+
+See the README.md that came with this package for more detailed information."""
+
+    if len (argv) not in (1, 2) or '--help' in argv:
+        print cli_update_cites.__doc__
+        raise SystemExit (1)
 
     if len (argv) < 2:
         datadir = '.'
