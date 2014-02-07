@@ -26,18 +26,18 @@ That is,
 
 unicode_to_latex_table_base = {
     u"\u0023": r"\#",
-    u"\u0024": r"\textdollar{}",
+    u"\u0024": r"\$",
     u"\u0025": r"\%",
     u"\u0026": r"\&",
     u"\u0027": r"'",
-    u"\u002A": r"\ast{}",
+    u"\u002A": r"\textasteriskcentered",
     u"\u005C": r"\textbackslash{}",
     u"\u005E": r"\^{}",
     u"\u005F": r"\_",
     u"\u0060": r"\textasciigrave{}",
-    u"\u007B": r"\lbrace{}",
+    u"\u007B": r"\{",
     u"\u007C": r"\vert{}",
-    u"\u007D": r"\rbrace{}",
+    u"\u007D": r"\}",
     u"\u007E": r"\textasciitilde{}",
     u"\u00A0": r"~",
     u"\u00A1": r"\textexclamdown{}",
@@ -2389,7 +2389,9 @@ unicode_to_latex_table_base = {
 #    u"\u2AC6\u0338": r"\nsupseteqq",
 #    u"\u2AFD\u20E5": r"{\rlap{\textbackslash}{{/}\!\!{/}}}",
 
+from unicodedata import normalize
+
 unicode_to_latex_table = dict ((ord (k), unicode (v))
                                for k, v in unicode_to_latex_table_base.iteritems ())
-unicode_to_latex_string = lambda u: u.translate (unicode_to_latex_table)
-unicode_to_latex = lambda u: u.translate (unicode_to_latex_table).encode ('ascii')
+unicode_to_latex_string = lambda u: normalize ('NFKC', u).translate (unicode_to_latex_table)
+unicode_to_latex = lambda u: normalize ('NFKC', u).translate (unicode_to_latex_table).encode ('ascii')
