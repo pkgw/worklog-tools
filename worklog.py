@@ -540,6 +540,7 @@ def compute_cite_stats (pubs):
     stats.year, stats.month, stats.day = gmtime (stats.meddate)[:3]
     stats.monthstr = months[stats.month - 1]
     stats.italich = MupItalics ('h')
+    stats.adslink = MupLink ('http://labs.adsabs.harvard.edu/adsabs', 'ADS')
     return stats
 
 
