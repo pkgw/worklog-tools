@@ -10,7 +10,7 @@ __all__ = ('nbsp months '
            'Holder die warn open_template slurp_template process_template '
            'list_data_files load '
            'unicode_to_latex html_escape '
-           'Markup MupText MupItalics MupBold MupLink MupJoin MupList '
+           'Markup MupText MupItalics MupBold MupUnderline MupLink MupJoin MupList '
            'render_latex render_html Formatter '
            'parse_ads_cites canonicalize_name surname best_url cite_info '
            'compute_cite_stats partition_pubs '
@@ -186,6 +186,17 @@ class MupBold (Markup):
 
     def _html (self):
         return [u'<b>'] + self.inner._html () + [u'</b>']
+
+
+class MupUnderline (Markup):
+    def __init__ (self, inner):
+        self.inner = _maybe_wrap_text (inner)
+
+    def _latex (self):
+        return [u'\\underline{'] + self.inner._latex () + [u'}']
+
+    def _html (self):
+        return [u'<u>'] + self.inner._html () + [u'</u>']
 
 
 class MupLink (Markup):
@@ -415,17 +426,23 @@ def cite_info (oitem, context):
 
     aitem = oitem.copy ()
 
-    # Canonicalized authors with highlighting of self.
+    # Canonicalized authors with bolding of self and underlining of advisees.
     cauths = [canonicalize_name (a) for a in oitem.authors.split (';')]
 
-    i = int (oitem.mypos) - 1
-    cauths[i] = MupBold (cauths[i])
+    myidx = int (oitem.mypos) - 1
+    cauths[myidx] = MupBold (cauths[myidx])
+
+    advposlist = oitem.get ('advpos', '')
+    if len (advposlist):
+        for i in [int (x) - 1 for x in advposlist.split (',')]:
+            cauths[i] = MupUnderline (cauths[i])
+
     aitem.full_authors = MupJoin (', ', cauths)
 
     # Short list of authors, possibly abbreviating my name.
     sauths = [surname (a) for a in oitem.authors.split (';')]
     if context.my_abbrev_name is not None:
-        sauths[i] = context.my_abbrev_name
+        sauths[myidx] = context.my_abbrev_name
 
     if len (sauths) == 1:
         aitem.short_authors = sauths[0]
@@ -445,7 +462,7 @@ def cite_info (oitem, context):
     # optionally-bolded for first authorship.
     aitem.quotable_title = oitem.title.replace (u'“', u'‘').replace (u'”', u'’')
 
-    if i == 0:
+    if myidx == 0:
         aitem.bold_if_first_title = MupBold (oitem.title)
     else:
         aitem.bold_if_first_title = oitem.title
