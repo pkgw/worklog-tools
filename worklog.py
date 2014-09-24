@@ -548,6 +548,7 @@ def partition_pubs (pubs):
     groups = Holder ()
     groups.all = []
     groups.refereed = []
+    groups.refpreprint = []
     groups.non_refereed = []
     groups.all_formal = []
     groups.all_non_refereed = []
@@ -555,6 +556,7 @@ def partition_pubs (pubs):
 
     for pub in pubs:
         refereed = (pub.refereed == 'y')
+        refpreprint = (pub.get ('refpreprint', 'n') == 'y')
         formal = (pub.get ('informal', 'n') == 'n')
         # we assume refereed implies formal.
 
@@ -564,6 +566,8 @@ def partition_pubs (pubs):
 
         if refereed:
             groups.refereed.append (pub)
+        elif refpreprint:
+            groups.refpreprint.append (pub)
         else:
             groups.all_non_refereed.append (pub)
 
@@ -574,6 +578,7 @@ def partition_pubs (pubs):
 
     groups.all_rev = groups.all[::-1]
     groups.refereed_rev = groups.refereed[::-1]
+    groups.refpreprint_rev = groups.refpreprint[::-1]
     groups.non_refereed_rev = groups.non_refereed[::-1]
     groups.informal_rev = groups.informal[::-1]
     return groups
