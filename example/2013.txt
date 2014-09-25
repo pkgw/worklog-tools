@@ -43,7 +43,7 @@ title = Determining The Variability and Spectrum of the Coolest
 date = 2013/01
 pi = Peter K. G. Williams
 cois = Edo Berger
-org = NRAO/VLA
+facil = Very Large Array
 id = VLA/13B-276
 nraolegacyid = AW861
 request = 14 hr
@@ -187,6 +187,7 @@ pubdate = 2013/10
 arxiv = 1310.6757
 authors = P. K. G. Williams; B. A. Cook; E. Berger
 mypos = 1
+advpos = 2
 refereed = y
 cite = ApJ submitted
 
@@ -197,6 +198,7 @@ pubdate = 2013/10
 arxiv = 1310.6758
 authors = B. A. Cook; P. K. G. Williams; E. Berger
 mypos = 2
+advpos = 1
 refereed = y
 cite = ApJ submitted
 
