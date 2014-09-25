@@ -601,6 +601,46 @@ def partition_pubs (pubs):
     return groups
 
 
+# Utilities for dealing with allocated observing time. Namely, we total up the
+# time allocated for each telescope as PI.
+
+def compute_time_allocations (props):
+    allocs = {}
+
+    for prop in props:
+        if prop.get ('mepi', 'n') != 'y':
+            continue # self as PI only
+
+        if prop.get ('accepted', 'n') != 'y':
+            continue # only accepted ones!
+
+        amount = prop.get ('award')
+        if amount is None:
+            amount = prop.get ('request')
+        if amount is None:
+            die ('no "award" or "request" for proposal %s', prop)
+
+        try:
+            facil = prop.facil
+            quantity, units = amount.split ()
+            quantity = float (quantity)
+        except Exception as e:
+            die ('error processing outcome of proposal <%s>: %s', prop, e)
+
+        if facil not in allocs:
+            allocs[facil] = (quantity, units)
+        else:
+            q0, u0 = allocs[facil]
+            if u0 != units:
+                die ('disagreeing time units for %s: both "%s" and "%s"',
+                     facil, u0, units)
+            allocs[facil] = (q0 + quantity, u0)
+
+    return sorted ((Holder (facil=k, total=unicode (v[0]), unit=v[1])
+                    for (k, v) in allocs.iteritems ()),
+                   key=lambda h: h.facil)
+
+
 # Commands for templates
 
 def cmd_cite_stats (context, template):
@@ -630,6 +670,14 @@ def cmd_pub_list (context, group):
         info = cite_info (pub, context)
         info.number = num + 1
         info.rev_number = npubs - num
+        yield context.cur_formatter (info)
+
+
+def cmd_talloc_list (context):
+    if context.cur_formatter is None:
+        die ('cannot use TALLOCLIST command before using FORMAT')
+
+    for info in context.time_allocs:
         yield context.cur_formatter (info)
 
 
@@ -678,6 +726,8 @@ def setup_processing (render, datadir):
     context.items = list (load (datadir))
     context.pubs = [i for i in context.items if i.section == 'pub']
     context.pubgroups = partition_pubs (context.pubs)
+    context.props = [i for i in context.items if i.section == 'prop']
+    context.time_allocs = compute_time_allocations (context.props)
     context.cur_formatter = None
     context.my_abbrev_name = None
 
@@ -686,6 +736,7 @@ def setup_processing (render, datadir):
     commands['FORMAT'] = cmd_format
     commands['MYABBREVNAME'] = cmd_my_abbrev_name
     commands['PUBLIST'] = cmd_pub_list
+    commands['TALLOCLIST'] = cmd_talloc_list
     commands['RMISCLIST'] = cmd_rev_misc_list
     commands['RMISCLIST_IF'] = cmd_rev_misc_list_if
     commands['RMISCLIST_IF_NOT'] = cmd_rev_misc_list_if_not
