@@ -226,6 +226,25 @@ text generation or do more processing, you’ll need to dive into `cite_info`.
 The details of publication processing are [documented in the next
 section](#technical-details-publication-processing).
 
+### Awarded proposals list
+
+Proposals can be listed in `[prop]` records. These also follow a somewhat
+specific format to allow one particular feature: the tools can compute the
+total awarded time by each facility. The relevant fields are:
+
+* `mepi` — should be `y` if you were the PI.
+* `accepted` — should be `y` if the proposal was accepted.
+* `facil` — the name of the facility that was proposed to.
+* `request` — the resources that the proposal requested. This should consist
+  of a number followed by a space and then some text specifying the units.
+  Every proposal for the same facility should use the same units.
+* `award` — the resources that were actually awarded. If not specified, it
+  is assumed that the full request was awarded.
+
+Proposals are grouped by facility, and the total amount awarded in each
+proposal where both `mepi` and `accepted` are `y` is computed. The totals may
+then be inserted into the template using [TALLOCLIST](#talloclist).
+
 ### Miscellaneous template directives
 
 There are also some more specialized templating directives that are [fully
@@ -253,10 +272,16 @@ certain fields. Some of the key ones are:
   way to have the software pull out surnames automatically. Initials are OK.
 * `mypos` — your numerical position in the author list, with 1 (sensibly)
   being first.
+* `advpos` — a comma-separated list of positions in the author list, again
+  with 1 being first. The corresponding author names will be underlined in
+  the full author list. The intention is to highlight the names of
+  directly-advised students.
 * `pubdate` — the year and month of the publication, in numerical `YYYY/MM`
   format. The worklog system generally tries not to enforce a particular
   date format, but here it does.
 * `refereed` — `y` if the publication is refereed, `n` if not.
+* `refpreprint` — `y` if the publication has been submitted to the refereeing
+  process but has not yet been accepted.
 * `informal` — `y` if the publication is informal (e.g., a poster); this
   affects the partitioning process as described below.
 * `cite` — citation text for the publication. This is free-form. My personal
@@ -325,15 +350,20 @@ The groups that publications can be sorted into are:
 * `all_formal` — publications without `informal = y`
 * `refereed` — publications with `refereed = y`
 * `refereed_rev` — as above but in reverse chronological order
-* `all_non_refereed` — publications without `refereed = y`
-* `non_refereed` — publications without `refereed = y` *or* `informal = y`
+* `refpreprint` — publications with `refpreprint = y`
+* `refpreprint_rev` — as above but in reverse chronological order
+* `all_non_refereed` — publications without `refereed = y` *or*
+  `refpreprint = y`
+* `non_refereed` — publications without `refereed = y` *or*
+  `refpreprint = y` *or* `informal = y`
 * `non_refereed_rev` — as above but in reverse chronological order
-* `informal` — publications without `refereed = y` but with `informal = y`
+* `informal` — publications without `refereed = y` or `refpreprint = y` but
+  with `informal = y`
 * `informal_rev` — as above but in reverse chronological order
 
 It’s assumed that `refereed = y` and `informal = y` never go together. The
-combination of `refereed`, `non_refereed`, and `informal` captures all
-publications.
+combination of `refereed`, `refpreprint`, `non_refereed`, and `informal`
+captures all publications.
 
 
 Technical details: wltool invocation
@@ -505,7 +535,7 @@ Example:
 
 ```HTML
 <p>Do people cite me?
-CITESTATES citestats.frag.txt
+CITESTATS citestats.frag.txt
 So basically, yes, they do.</p>
 ```
 
@@ -575,6 +605,32 @@ FORMAT <dt>|pubdate|</dt><dd>|title|</dd>
 <dl>
 PUBLIST refereed_rev
 </dl>
+```
+
+### TALLOCLIST
+
+Causes information about total resources allocated in proposals to be inserted
+according to the most recently-specified [FORMAT](#format-template-text-)
+template. The [FORMAT](#format-template-text-) template is inserted once for
+each facility with a successful proposal as PI.
+
+The fields accessible to the template are:
+
+* `facil` — the facility name
+* `total` — the total of the allocations for that facility
+* `unit` — the unit string specified in the proposals for the facility
+
+The records are sorted alphabetically by `facil`.
+
+Example
+
+```TeX
+FORMAT |facil| & |total| & |unit| \cr
+
+\section*{Total Allocations as PI}
+\begin{tabular}{lrl}
+TALLOCLIST
+\end{tabular}
 ```
 
 ### RMISCLIST {type1[,type2,...]}
