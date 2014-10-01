@@ -11,6 +11,7 @@ workog commands are:
   extract           Print out worklog records of a specific type
   html              Fill in an HTML-formatted template
   latex             Fill in a LaTeX-formatted template
+  nsf-collabs       Print stub list of collaborators in past 48 months
   summarize         Summarize the records present in the worklog data files
   update-cites      Update ADS citation counts in the worklog data files
 
@@ -81,6 +82,59 @@ See the README.md that came with this package for more detailed information."""
         datadir = argv[2]
 
     write (sys.stdout, (i for i in load (datadir) if i.section == sectname))
+
+
+def cli_nsf_collabs (argv):
+    """usage: wltool nsf-collabs
+
+Print out a list of collaborators in the past 48 months, a suitable basis for
+the generation of a list of collaborators for an NSF biographical sketch. You
+must manually check names, remove duplicates, split identical names, add
+organizational affiliations, and generally use your common sense. This tool
+uses authors on [pub] items; this does not necessarily map cleanly to the set
+of names that the NSF wants for such a list.
+
+The output will be formatted for inclusion in a LaTeX document.
+"""
+
+    if len (argv) not in (1, 2) or '--help' in argv:
+        print cli_nsf_collabs.__doc__
+        raise SystemExit (1)
+
+    if len (argv) < 2:
+        datadir = '.'
+    else:
+        datadir = argv[1]
+
+    # Set up for filtering by date
+
+    import time
+    cutoff_year, cutoff_month = time.localtime ()[:2]
+    cutoff_year -= 4
+
+    # Load up those names
+
+    names = set ()
+
+    for i in load (datadir):
+        if i.section != 'pub':
+            continue
+
+        dbits = i.pubdate.split ('/')
+        iyear, imonth = map (int, dbits[:2])
+        if iyear < cutoff_year or imonth < cutoff_month:
+            continue
+
+        for aubase in i.authors.split (';'):
+            bits = aubase.strip ().split ()
+            surname = bits[-1].replace ('_', ' ')
+            rest = ' '.join (bits[:-1])
+            names.add ((rest, surname))
+
+    # Print, sorted by last name, in a format just ripe for filling in.
+
+    for rest, surname in sorted (names, key=lambda t: t[1]):
+        print unicode_to_latex ('%s %s (),' % (rest, surname))
 
 
 def _cli_render (argv):
