@@ -1,5 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-# Copyright 2014 Peter Williams <peter@newton.cx>
+# Copyright 2014-2015 Peter Williams <peter@newton.cx>
 # Licensed under the GNU General Public License, version 3 or higher.
 
 """
@@ -444,14 +444,18 @@ def cite_info (oitem, context):
     if context.my_abbrev_name is not None:
         sauths[myidx] = context.my_abbrev_name
 
+    if len (advposlist):
+        for i in [int (x) - 1 for x in advposlist.split (',')]:
+            sauths[i] = MupUnderline (sauths[i])
+
     if len (sauths) == 1:
         aitem.short_authors = sauths[0]
     elif len (sauths) == 2:
-        aitem.short_authors = ' & '.join (sauths)
+        aitem.short_authors = MupJoin (' & ', sauths)
     elif len (sauths) == 3:
-        aitem.short_authors = ', '.join (sauths)
+        aitem.short_authors = MupJoin (', ', sauths)
     else:
-        aitem.short_authors = sauths[0] + ' et' + nbsp + 'al.'
+        aitem.short_authors = MupJoin (' ', [sauths[0], 'et' + nbsp + 'al.'])
 
     if oitem.refereed == 'y':
         aitem.refereed_mark = u'»'
