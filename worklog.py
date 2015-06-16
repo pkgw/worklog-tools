@@ -10,8 +10,8 @@ __all__ = b'''nbsp months Holder die warn open_template slurp_template
               process_template list_data_files load unicode_to_latex
               html_escape Markup MupText MupItalics MupBold MupUnderline
               MupLink MupJoin MupList render_latex render_html Formatter
-              parse_ads_cites canonicalize_name surname best_url cite_info
-              compute_cite_stats partition_pubs setup_processing
+              ADSCountError parse_ads_cites canonicalize_name surname best_url
+              cite_info compute_cite_stats partition_pubs setup_processing
               get_ads_cite_count bootstrap_bibtex'''.split ()
 
 nbsp = u'\u00a0'
@@ -753,28 +753,37 @@ _ads_url_tmpl = (r'http://adsabs.harvard.edu/cgi-bin/nph-abs_connect?'
                  r'bibcode=%(bibcode)s&data_type=Custom&format=%%25c&nocookieset=1')
 
 
+class ADSCountError (Exception):
+    def __init__ (self, fmt, args):
+        super (ADSCountError, self).__init__ (fmt % args)
+
+
 def get_ads_cite_count (bibcode):
-    from urllib2 import urlopen, quote
+    import httplib
+    from urllib2 import urlopen, quote, URLError
     url = _ads_url_tmpl % {'bibcode': quote (bibcode)}
     lastnonempty = None
 
-    for line in urlopen (url):
-        line = line.strip ()
-        if len (line):
-            lastnonempty = line
+    try:
+        for line in urlopen (url):
+            line = line.strip ()
+            if len (line):
+                lastnonempty = line
+    except httplib.BadStatusLine as e:
+        raise ADSCountError ('received bad HTTP status: %r', e)
+    except URLError as e:
+        raise ADSCountError (str (e))
 
     if lastnonempty is None:
-        die ('got only empty lines for bibcode %s', bibcode)
+        raise ADSCountError ('got only empty lines')
 
     if lastnonempty.startswith ('Retrieved 0 abstracts'):
-        warn ('no ADS entry for bibcode %s', bibcode)
-        return 0
+        raise ADSCountError ('no such bibcode')
 
     try:
         count = int (lastnonempty)
     except Exception:
-        die ('got unexpected final line "%s" from ADS for bibcode %s',
-             lastnonempty, bibcode)
+        raise ADSCountError ('got unexpected final line %r', lastnonempty)
 
     return count
 

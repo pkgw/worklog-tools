@@ -255,10 +255,12 @@ See the README.md that came with this package for more detailed information."""
                 continue
 
             print bibcode, ' *'[firstauth] + ' R'[reffed], '...',
-            newcites = get_ads_cite_count (bibcode)
-            item.set ('adscites', nowstr + str (newcites))
-            print '%d (%+d)' % (newcites, newcites - curcites)
-
+            try:
+                newcites = get_ads_cite_count (bibcode)
+                item.set ('adscites', nowstr + str (newcites))
+                print '%d (%+d)' % (newcites, newcites - curcites)
+            except ADSCountError as e:
+                print ('error!: %s' % e)
 
 # The dispatcher
 
