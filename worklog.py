@@ -6,16 +6,13 @@
 Shared routines for my worklog tools.
 """
 
-__all__ = ('nbsp months '
-           'Holder die warn open_template slurp_template process_template '
-           'list_data_files load '
-           'unicode_to_latex html_escape '
-           'Markup MupText MupItalics MupBold MupUnderline MupLink MupJoin MupList '
-           'render_latex render_html Formatter '
-           'parse_ads_cites canonicalize_name surname best_url cite_info '
-           'compute_cite_stats partition_pubs '
-           'setup_processing '
-           'get_ads_cite_count bootstrap_bibtex').split ()
+__all__ = b'''nbsp months Holder die warn open_template slurp_template
+              process_template list_data_files load unicode_to_latex
+              html_escape Markup MupText MupItalics MupBold MupUnderline
+              MupLink MupJoin MupList render_latex render_html Formatter
+              parse_ads_cites canonicalize_name surname best_url cite_info
+              compute_cite_stats partition_pubs setup_processing
+              get_ads_cite_count bootstrap_bibtex'''.split ()
 
 nbsp = u'\u00a0'
 months = 'Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'.split ()
