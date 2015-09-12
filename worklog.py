@@ -92,6 +92,8 @@ def list_data_files (datadir='.'):
     any = False
 
     for item in sorted (listdir (datadir)):
+        if item.startswith ('.'):
+            continue
         if not item.endswith ('.txt'):
             continue
 
