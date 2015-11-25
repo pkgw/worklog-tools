@@ -190,7 +190,8 @@ def get_github_service (authdir):
     """
     from github import Github
     token = read_secret_line (os.path.join (authdir, GH_CREDENTIALS_FILE))
-    return Github (token)
+    gh = Github (token, per_page=99) # only up to 100/page is allowed
+    return gh
 
 
 def get_repo_commit_stats (gh, reponame):
@@ -206,7 +207,12 @@ def get_repo_commit_stats (gh, reponame):
 
     for c in repo.get_commits (author=gh.get_user ()):
         res.commits += 1
-        res.lines += c.stats.total
+
+        # I want to count the total lines committed, but this requires
+        # fetching the full commit information for each commit, which is slow
+        # and blows up my GitHup API rate limit. TODO: figure out alternative
+        # metric?
+        ### XXX res.lines += c.stats.total
 
         if latest is None:
             latest = c.commit.committer.date

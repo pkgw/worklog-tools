@@ -15,6 +15,7 @@ workog commands are:
   nsf-collabs       Print stub list of collaborators in past 48 months
   summarize         Summarize the records present in the worklog data files
   update-cites      Update ADS citation counts in the worklog data files
+  update-github     Update statistics about contributions to GitHub repositories
 
 Running 'wltool <command> --help' may give more information on the command
 in question."""
@@ -307,6 +308,82 @@ See the README.md that came with this package for more detailed information."""
                 print '%d (%+d)' % (newcites, newcites - curcites)
             except ADSCountError as e:
                 print ('error!: %s' % e)
+
+
+def cli_update_github (argv):
+    """usage: wltool update-github [datadir]
+
+Fetch contribution statistics regarding GitHub repositories that you've
+contributed to, and update the worklog records as appropriate. This requires
+that API access to GitHub has been set up."""
+
+    if len (argv) not in (1, 2) or '--help' in argv:
+        print cli_update_github.__doc__
+        raise SystemExit (1)
+
+    if len (argv) < 2:
+        datadir = '.'
+    else:
+        datadir = argv[1]
+
+    import time, wlgithub
+    from github import GithubException
+    from inifile import mutateInPlace
+
+    debug_requests = False
+    if debug_requests:
+        import logging
+        logging.basicConfig ()
+        logging.getLogger ('github.Requester').level = logging.DEBUG
+
+    gh = wlgithub.get_github_service (datadir)
+
+    now = int (time.time ())
+    nowstr = time.strftime ('%Y/%m/%d', time.gmtime (now))
+
+    for path in list_data_files (datadir):
+        for item in mutateInPlace (path):
+            if item.data.section != 'pubrepo' or item.data.service != 'github':
+                continue
+            if item.data.has ('skip') and item.data.skip == 'y':
+                continue
+
+            if not item.data.has ('updated'):
+                lastupdate = 0
+            else:
+                try:
+                    y, m, d = [int (x) for x in item.data.updated.split ('/')]
+                    lastupdate = time.mktime ((y, m, d, 0, 0, 0, 0, 0, 0))
+                except Exception:
+                    warn ('cannot parse "updated" entry: %s', item.data.updated)
+                    continue
+
+            if lastupdate + _update_minwait > now:
+                continue
+
+            name = item.data.name
+
+            print name, '...'
+            try:
+                #print gh.get_rate_limit ().rate.remaining
+                mycommits = wlgithub.get_repo_commit_stats (gh, name)
+                item.set ('usercommits', mycommits.commits)
+                if mycommits.latest_date is not None:
+                    item.set ('lastusercommit', '%04d/%02d/%02d' % (mycommits.latest_date.year,
+                                                                    mycommits.latest_date.month,
+                                                                    mycommits.latest_date.day))
+
+                impact = wlgithub.get_repo_impact_stats (gh, name)
+                item.set ('allcommits', impact.commits)
+                item.set ('forks', impact.forks)
+                item.set ('stars', impact.stars)
+                item.set ('contributors', impact.contributors)
+
+                item.set ('updated', nowstr)
+            except GithubException as e:
+                warn ('GitHub exception: %s', e)
+                continue
+
 
 # The dispatcher
 
