@@ -9,6 +9,7 @@ workog commands are:
 
   bootstrap-bibtex  Stub publication records from an ADS BibTeX file
   extract           Print out worklog records of a specific type
+  github-repos      Print list of GitHub repositories contributed to
   html              Fill in an HTML-formatted template
   latex             Fill in a LaTeX-formatted template
   nsf-collabs       Print stub list of collaborators in past 48 months
@@ -82,6 +83,51 @@ See the README.md that came with this package for more detailed information."""
         datadir = argv[2]
 
     write (sys.stdout, (i for i in load (datadir) if i.section == sectname))
+
+
+def cli_github_repos (argv):
+    """usage: wltool github-repos [datadir]
+
+Print out a list of GitHub repositories that you've contributed to, marking
+potentially new ones.
+
+This uses the Google BigQuery dataset set up by githubarchive.org, and requires
+that API access to Google BigQuery and GitHub have been set up.
+
+"""
+
+    if len (argv) not in (1, 2) or '--help' in argv:
+        print cli_github_repos.__doc__
+        raise SystemExit (1)
+
+    if len (argv) < 2:
+        datadir = '.'
+    else:
+        datadir = argv[1]
+
+    # Get the set of already-known repositories
+
+    known_repos = set ()
+
+    for i in load (datadir):
+        if i.section != 'pubrepo':
+            continue
+
+        if i.service != 'github':
+            continue
+
+        known_repos.add (i.name)
+
+    # Query GitHub repos with contributions and report
+
+    import wlgithub
+    gh = wlgithub.get_github_service (datadir)
+    login = gh.get_user ().login
+    jobs = wlgithub.get_bigquery_jobs_service (datadir, [])
+
+    for name in wlgithub.get_repos_with_pushes_from_user (jobs, login):
+        flag = '  ' if name in known_repos else '**'
+        print '%-40s %s' % (name, flag)
 
 
 def cli_nsf_collabs (argv):
