@@ -317,8 +317,20 @@ def render_html (value):
 class Formatter (object):
     """Substituted items are delimited by pipes |likethis|. This works well in
     both HTML and Latex. If `israw`, the non-substituted template text is
-    returned verbatim; otherwise, it is escaped."""
+    returned verbatim; otherwise, it is escaped.
 
+    We have a special hack. If the substituted item is specified as
+    |texturl:foo|, the key "foo" will be looked in `item` and output as a link
+    whose text value is the same as its URL: i.e.
+
+       <a href="http://...">http://...</a>
+
+    This particular tactic is needed to work with textual URLs in LaTeX, since
+    the \url{} and \href{} commands redefine character codes such that the
+    standard LaTeX escaping mechanism is inappropriate. In particular, URLs
+    with tildes were breaking.
+
+    """
     def __init__ (self, renderer, israw, text):
         from re import split
         pieces = split (r'(\|[^|]+\|)', text)
@@ -341,7 +353,12 @@ class Formatter (object):
             return self.renderer (text)
 
         try:
-            return self.renderer (item.get (text))
+            if text.startswith ('texturl:'):
+                thing = item.get (text[8:])
+                thing = MupLink (thing, thing)
+            else:
+                thing = item.get (text)
+            return self.renderer (thing)
         except ValueError as e:
             raise ValueError ((u'while rendering field "%s" of item %s: %s' \
                                % (text, item, e)).encode ('utf-8'))
