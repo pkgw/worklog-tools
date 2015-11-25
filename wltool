@@ -131,7 +131,7 @@ that API access to Google BigQuery and GitHub have been set up.
 
 
 def cli_nsf_collabs (argv):
-    """usage: wltool nsf-collabs
+    """usage: wltool nsf-collabs [datadir]
 
 Print out a list of collaborators in the past 48 months, a suitable basis for
 the generation of a list of collaborators for an NSF biographical sketch. You
