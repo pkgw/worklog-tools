@@ -661,6 +661,39 @@ def compute_time_allocations (props):
                    key=lambda h: h.facil)
 
 
+# Utilities for dealing with public code repositories
+
+def process_repositories (items):
+    from urllib2 import quote as urlquote
+    repos = []
+
+    for i in items:
+        if i.section != 'pubrepo':
+            continue
+        if i.get ('skip', 'n') == 'y':
+            continue
+        if i.usercommits == '0':
+            continue
+
+        repo = i.copy ()
+        repos.append (repo)
+
+        if i.service == 'github':
+            repo.linkname = MupLink ('https://github.com/' + urlquote (i.name), i.name)
+        else:
+            repo.linkname = i.name
+
+        repo.commit_frac = '%.0f%%' % (100. * int (i.usercommits) / int (i.allcommits))
+        if repo.commit_frac == '0%':
+            repo.commit_frac = '<1%'
+
+        repo.luc_year, repo.luc_month, repo.luc_day = [int (x) for x in i.lastusercommit.split ('/')]
+        repo.date = '%04d %s' % (repo.luc_year, months[repo.luc_month - 1])
+        repo._datekey = repo.luc_year * 10000 + repo.luc_month * 100 + repo.luc_day
+
+    return sorted (repos, key=lambda r: r._datekey)
+
+
 # Commands for templates
 
 def cmd_cite_stats (context, template):
@@ -729,6 +762,17 @@ def cmd_rev_misc_list_if_not (context, sections, gatefield):
     return _rev_misc_list (context, sections,
                            lambda i: i.get (gatefield, 'n') != 'y')
 
+def cmd_rev_repo_list (context, sections):
+    if context.cur_formatter is None:
+        die ('cannot use RREPOLIST command before using FORMAT')
+
+    sections = frozenset (sections.split (','))
+
+    for item in context.repos[::-1]:
+        if item.section not in sections:
+            continue
+        yield context.cur_formatter (item)
+
 
 def cmd_today (context):
     """Note the trailing period in the output."""
@@ -748,6 +792,7 @@ def setup_processing (render, datadir):
     context.pubgroups = partition_pubs (context.pubs)
     context.props = [i for i in context.items if i.section == 'prop']
     context.time_allocs = compute_time_allocations (context.props)
+    context.repos = process_repositories (context.items)
     context.cur_formatter = None
     context.my_abbrev_name = None
 
@@ -760,6 +805,7 @@ def setup_processing (render, datadir):
     commands['RMISCLIST'] = cmd_rev_misc_list
     commands['RMISCLIST_IF'] = cmd_rev_misc_list_if
     commands['RMISCLIST_IF_NOT'] = cmd_rev_misc_list_if_not
+    commands['RREPOLIST'] = cmd_rev_repo_list
     commands['TODAY.'] = cmd_today
 
     return context, commands
