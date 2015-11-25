@@ -668,7 +668,7 @@ def process_repositories (items):
     repos = []
 
     for i in items:
-        if i.section != 'pubrepo':
+        if i.section != 'repo':
             continue
         if i.get ('skip', 'n') == 'y':
             continue

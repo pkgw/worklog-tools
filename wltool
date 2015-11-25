@@ -111,7 +111,7 @@ that API access to Google BigQuery and GitHub have been set up.
     known_repos = set ()
 
     for i in load (datadir):
-        if i.section != 'pubrepo':
+        if i.section != 'repo':
             continue
 
         if i.service != 'github':
@@ -343,7 +343,7 @@ that API access to GitHub has been set up."""
 
     for path in list_data_files (datadir):
         for item in mutateInPlace (path):
-            if item.data.section != 'pubrepo' or item.data.service != 'github':
+            if item.data.section != 'repo' or item.data.service != 'github':
                 continue
             if item.data.has ('skip') and item.data.skip == 'y':
                 continue
