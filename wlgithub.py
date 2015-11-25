@@ -242,6 +242,7 @@ def get_repo_impact_stats (gh, reponame):
 
     repo = gh.get_repo (reponame)
     res = Holder ()
+    res.description = repo.description # OK this isn't impact but it's handy
 
     # It can take GitHub a little while to compute the 'stats' items, in which
     # case the relevant binding functions will return None. We make these
