@@ -374,7 +374,7 @@ that API access to GitHub has been set up."""
                                                                     mycommits.latest_date.day))
 
                 impact = wlgithub.get_repo_impact_stats (gh, name)
-                item.set ('description', impact.description)
+                item.set ('desc', impact.description)
                 item.set ('allcommits', impact.commits)
                 item.set ('forks', impact.forks)
                 item.set ('stars', impact.stars)
