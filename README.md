@@ -753,9 +753,16 @@ The tools should be broadly portable, but they do have a few requirements:
   * [hyperref](http://www.ctan.org/pkg/hyperref)
   * [lastpage](http://www.ctan.org/pkg/lastpage)
   * [titlesec](http://www.ctan.org/pkg/titlesec)
-
   These should all be available on modern LaTeX installs, and I’ve tried
   to avoid constructs that aren’t compatible across many versions.
+* To use the GitHub features, you need to install the following Python
+  packages and their dependencies:
+  * httplib2
+  * google-api-python-client
+  * oauth2client
+  * pygithub
+  You also need to generate and save credentials for logging into Google
+  BigQuery, a process I have not yet documented :-(
 
 
 Copyright and license status of this document

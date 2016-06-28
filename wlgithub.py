@@ -9,7 +9,7 @@ the best available option for capturing my open-source efforts.
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import json, os.path
+import json, os.path, time
 
 # potential errors we could handle:
 #   googleapiclient.errors.HttpError
@@ -133,46 +133,40 @@ def get_repos_with_pushes_from_user (jobs, login):
     """Returns a set of names of repository (of the format "owner/reponame") that
     a user has pushed to since 2011.
 
-    githubarchive.org changed their data format on the first day of 2015, so
-    we need to construct two different queries to bridge all dates. I'd kind
-    of rather access the aggregated monthly tables for the later queries,
-    rather than a separate table for every single day since 2015 Jan 1, but
-    presumably the by-day storage is decently efficient, and I don't see an
-    easy way to query all by-month tables starting with 201501 (unless there's
-    a way that I can turn that into a numerical test?). Note that the monthly
-    tables before 201501 have a different schema than the ones after.
+    I'd kind of like to access aggregated monthly tables rather than a
+    separate table for every single day, but presumably the by-day storage is
+    decently efficient, and I don't see an easy way to query all by-month
+    tables starting with 201501 (unless there's a way that I can turn that
+    into a numerical test?). But we have to break the queries up into chunks
+    to not look at too many tables at once (current maximum: 1000).
 
     """
     from itertools import chain
+    first_year = 2011 # start of githubarchive data set.
+    cur_year = time.localtime ()[0]
 
-    v1_query = '''
-SELECT
-  UNIQUE(repository_owner + "/" + repository_name) AS reponame
-FROM
-  [githubarchive:year.2011],
-  [githubarchive:year.2012],
-  [githubarchive:year.2013],
-  [githubarchive:year.2014]
-WHERE
-  actor_attributes_login == {0}
-  AND type == "PushEvent"
-'''.format (format_string_literal (login))
-
-    v2_query = '''
+    year_ts_template = "TIMESTAMP('{0}-01-01')"
+    query_template = '''
 SELECT
   UNIQUE(repo.name) AS reponame
 FROM
-  TABLE_DATE_RANGE([githubarchive:day.events_], TIMESTAMP('2015-01-01'), CURRENT_TIMESTAMP())
+  TABLE_DATE_RANGE([githubarchive:day.], {0}, {1})
 WHERE
-  actor.login == {0} AND
+  actor.login == {2} AND
   type == "PushEvent"
-'''.format (format_string_literal (login))
+'''
+
+    queries = []
+    for year in xrange (first_year, cur_year):
+        y1 = year_ts_template.format (year)
+        y2 = year_ts_template.format (year+1)
+        queries.append (query_template.format (y1, y2, format_string_literal (login)))
+
+    y = year_ts_template.format (cur_year)
+    queries.append (query_template.format (y, 'CURRENT_TIMESTAMP()', format_string_literal (login)))
 
     seen = set ()
-    results = chain (
-        run_bigquery (jobs, v1_query),
-        run_bigquery (jobs, v2_query)
-    )
+    results = chain (*[run_bigquery (jobs, q) for q in queries])
 
     for r in results:
         name = r['reponame']
