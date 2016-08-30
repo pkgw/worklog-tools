@@ -19,7 +19,7 @@
 \urlstyle{sf}
 
 % needed for the fancy footer
-\usepackage{fancyhdr,lastpage} 
+\usepackage{fancyhdr,lastpage}
 
 % layout of the publication list
 \usepackage{enumitem}
@@ -60,7 +60,12 @@ TODAY.
 The most recent version of this list may be found online at
 \url{\mysite}.
 The names of directly-supervised students are underlined.
-CITESTATS citestats.frag.txt
+BEGIN_SUBST cite_stats
+|adslink| citation counts are shown in square brackets and were last updated
+around monthstr|~|day|,~|year|. As of then, I was an author on |refpubs|
+refereed publications (|reffirstauth| as first author), my |italich|-index
+was |hindex| and my refereed publications had |refcites| citations.
+END
 
 This sample list is incomplete!
 

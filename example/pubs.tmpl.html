@@ -42,7 +42,12 @@ TODAY.
       bold</span>; refereed works are marked with a guillemet (»).
       The names of directly-supervised students are underlined.
       My <a href="/cv.html">full CV</a> is also online.
-CITESTATS citestats.frag.txt
+BEGIN_SUBST cite_stats
+|adslink| citation counts are shown in square brackets and were last updated
+around |monthstr| |day|, |year|. As of then, I was an author on |refpubs|
+refereed publications (|reffirstauth| as first author), my |italich|-index was
+|hindex| and my refereed publications had |refcites| citations.
+END
       </p>
 
 <!-- well this is less than ideal, but whatever. -->

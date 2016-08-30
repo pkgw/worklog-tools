@@ -43,6 +43,7 @@ Contents
   processing](#technical-details-publication-processing)
 * [Technical details: wltool invocation](#technical-details-wltool-invocation)
 * [Technical details: template directives](#technical-details-template-directives)
+* [Technical details: substitution groups](#technical-details-substitution-groups)
 * [Technical details: the ini file format](#technical-details-the-ini-file-format)
 * [System requirements](#system-requirements)
 
@@ -245,13 +246,22 @@ Proposals are grouped by facility, and the total amount awarded in each
 proposal where both `mepi` and `accepted` are `y` is computed. The totals may
 then be inserted into the template using [TALLOCLIST](#talloclist).
 
+### Other derived information
+
+The [BEGIN_SUBST](#begin_subst-group) directive begins a block of text in
+which special text fragments can be inserted into the template directly. This
+block continues until a bare `END` directive is encountered. Different
+substitution groups are available:
+
+* [cite_stats](#cite_stats) — statistics regarding refereed publications
+  drawn from [NASA ADS].
+* [talk_stats](#talk_stats) — statistics regarding professional talks
+
 ### Miscellaneous template directives
 
 There are also some more specialized templating directives that are [fully
-documented below](#technical-details-template-directives). Of particular
-interest are [TODAY.](#today), which inserts the current date, and
-[CITESTATS](#citestats-subtemplate-name), which inserts some citation
-statistics based on the information gathered from [NASA ADS].
+documented below](#technical-details-template-directives). For example,
+[TODAY.](#today), inserts the current date.
 
 
 Technical details: publication processing
@@ -504,39 +514,24 @@ recognized when it appears at the very beginning of a line in a template. Most
 of the directives take arguments that appear on the same line, separated by
 whitespace.
 
-### CITESTATS {subtemplate-name}
+### BEGIN_SUBST {group}
 
-Inserts a snippet of text with citation statistics following a sub-template.
-The sub-template is searched for first at the file name
-`templates/{template-name}`, then at `{toolsdir}/templates/{template-name}`,
-where `{toolsdir}` is the directory containing the [wltool](wltool) script. We
-provide a default version called
-[templates/citestats.frag.txt](templates/citestats.frag.txt).
+Marks the beginning of a region in which text will be substituted. The
+behavior resembles a [FORMAT](#format-template-text-) directive in that the
+following lines should contain pipe-delimited field names that will be
+substituted with computed values. This behavior will continue until a line
+containing just the word `END` is encountered.
 
-That sub-template resembles a [FORMAT](#format-template-text-) directive in
-that it should contain pipe-delimited field names that will be substituted
-with computed values. Possible fields are:
-
-* `day` — the numerical day of the month of the median date when citations
-  were updated.
-* `hindex` — your numerical *h*-index.
-* `italich` — a bit of a hack; code for the letter “h” in italics, appropriate
-  for either LaTeX or HTML as needed.
-* `meddate` — the median *Unix time* around which citations were updated.
-* `month` — the numerical month of the median date when citations were updated.
-* `monthstr` — the three-letter abbreviated month of the median date when
-   citations were updated.
-* `refcites` — the total number of citations to refereed publications
-* `reffirstauth` — the total number of refereed first-author publications
-* `refpubs` — the total number of refereed publications
-* `year` — the year of the median date around which citations were updated.
+The subsitutions are batched into different groups. The available substitution
+groups [are listed below](#technical-details-substitution-groups).
 
 Example:
 
 ```HTML
-<p>Do people cite me?
-CITESTATS citestats.frag.txt
-So basically, yes, they do.</p>
+BEGIN_SUBST cite_stats
+<p>I may have written only |refpubs| refereed publications, but I assure you
+that they are all profound.</p>
+END
 ```
 
 ### FORMAT {template text ...}
@@ -694,6 +689,39 @@ Example:
 This document was last updated
 TODAY.
 ```
+
+
+Technical details: substitution groups
+--------------------------------------
+
+Here are the different substitution groups known to the
+[BEGIN_SUBST](#begin_subst-group) directive.
+
+### cite_stats
+
+The fields within this group are:
+
+* `day` — the numerical day of the month of the median date when citations
+  were updated.
+* `hindex` — your numerical *h*-index.
+* `italich` — a bit of a hack; code for the letter “h” in italics, appropriate
+  for either LaTeX or HTML as needed.
+* `meddate` — the median *Unix time* around which citations were updated.
+* `month` — the numerical month of the median date when citations were updated.
+* `monthstr` — the three-letter abbreviated month of the median date when
+   citations were updated.
+* `refcites` — the total number of citations to refereed publications
+* `reffirstauth` — the total number of refereed first-author publications
+* `refpubs` — the total number of refereed publications
+* `year` — the year of the median date around which citations were updated.
+
+### talk_stats
+
+The fields within this group are:
+
+* `n_total` — the total number of talks
+* `n_invited` — the number of talks with `invited = y`
+* `n_conference` — the number of talks with `conference = y`
 
 
 Technical details: the ini file format

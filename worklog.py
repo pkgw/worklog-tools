@@ -765,17 +765,12 @@ class MultilineSubstHandler (MultilineHandler):
         return Formatter (context.render, True, tmpl) (self.info)
 
 
-def cmd_begin_subst (context, section):
+def cmd_begin_subst (context, group):
     try:
-        info = getattr (context, section)
+        info = getattr (context, group)
     except AttributeError:
-        die ('no such info section \"%s\" for BEGIN_SUBST command', section)
+        die ('no such substitution group \"%s\" for BEGIN_SUBST command', group)
     return MultilineSubstHandler (info)
-
-
-def cmd_cite_stats (context, template):
-    info = compute_cite_stats (context.pubgroups.all_formal)
-    return Formatter (context.render, False, slurp_template (template)) (info)
 
 
 def cmd_format (context, *inline_template):
@@ -870,13 +865,13 @@ def setup_processing (render, datadir):
     context.props = [i for i in context.items if i.section == 'prop']
     context.time_allocs = compute_time_allocations (context.props)
     context.repos = process_repositories (context.items)
-    context.talk_info = summarize_talks ([i for i in context.items if i.section == 'talk'])
+    context.talk_stats = summarize_talks ([i for i in context.items if i.section == 'talk'])
+    context.cite_stats = compute_cite_stats (context.pubgroups.all_formal)
     context.cur_formatter = None
     context.my_abbrev_name = None
 
     commands = {}
     commands['BEGIN_SUBST'] = cmd_begin_subst
-    commands['CITESTATS'] = cmd_cite_stats
     commands['FORMAT'] = cmd_format
     commands['MYABBREVNAME'] = cmd_my_abbrev_name
     commands['PUBLIST'] = cmd_pub_list
