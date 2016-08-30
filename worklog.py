@@ -627,13 +627,7 @@ def partition_pubs (pubs):
 def compute_time_allocations (props):
     allocs = {}
 
-    for prop in props:
-        if prop.get ('mepi', 'n') != 'y':
-            continue # self as PI only
-
-        if prop.get ('accepted', 'n') != 'y':
-            continue # only accepted ones!
-
+    def get_contributions (prop):
         amount = prop.get ('award')
         if amount is None:
             amount = prop.get ('request')
@@ -641,20 +635,48 @@ def compute_time_allocations (props):
             die ('no "award" or "request" for proposal %s', prop)
 
         try:
-            facil = prop.facil
-            quantity, units = amount.split ()
-            quantity = float (quantity)
+            facil1 = prop.facil
+            quantity1, units1 = amount.split ()
+            quantity1 = float (quantity1)
         except Exception as e:
-            die ('error processing outcome of proposal <%s>: %s', prop, e)
+            die ('error processing primary outcome of proposal <%s>: %s', prop, e)
 
-        if facil not in allocs:
-            allocs[facil] = (quantity, units)
-        else:
-            q0, u0 = allocs[facil]
-            if u0 != units:
-                die ('disagreeing time units for %s: both "%s" and "%s"',
-                     facil, u0, units)
-            allocs[facil] = (q0 + quantity, u0)
+        yield facil1, quantity1, units1
+
+        i = 2
+
+        while True:
+            amount = prop.get ('award%d' % i)
+            if amount is None:
+                amount = prop.get ('request%d' % i)
+            if amount is None:
+                break
+
+            try:
+                quantity, units, facil = amount.split (None, 2)
+                quantity = float (quantity)
+            except Exception as e:
+                die ('error processing outcome #%d of proposal <%s>: %s', i, prop, e)
+
+            yield facil, quantity, units
+            i += 1
+
+    for prop in props:
+        if prop.get ('mepi', 'n') != 'y':
+            continue # self as PI only
+
+        if prop.get ('accepted', 'n') != 'y':
+            continue # only accepted ones!
+
+        for facil, quantity, units in get_contributions (prop):
+            if facil not in allocs:
+                allocs[facil] = (quantity, units)
+            else:
+                q0, u0 = allocs[facil]
+                if u0 != units:
+                    die ('disagreeing time units for %s: both "%s" and "%s"',
+                         facil, u0, units)
+                allocs[facil] = (q0 + quantity, u0)
 
     return sorted ((Holder (facil=k, total=unicode (v[0]), unit=v[1])
                     for (k, v) in allocs.iteritems ()),
