@@ -62,6 +62,13 @@ def slurp_template (stem):
         return f.read ().decode ('utf8')
 
 
+class MultilineHandler (object):
+    def handle_line (self, context, line):
+        raise NotImplementedError ()
+    def handle_end_span (self, context):
+        raise NotImplementedError ()
+
+
 def process_template (stream, commands, context):
     """Read through a template line-by-line and replace special lines. Each
     regular line is yielded to the caller. `commands` is a dictionary of
@@ -70,19 +77,36 @@ def process_template (stream, commands, context):
     arguments. Its return value is either a string or an iterable, with each
     iterate being yielded to the caller in the latter case."""
 
+    current_multiline_handler = None
+
     for line in stream:
         line = line.decode ('utf8').rstrip ()
-        a = line.split ()
 
-        if not len (a) or a[0] not in commands:
-            yield line
-        else:
-            result = commands[a[0]] (context, *a[1:])
-            if isinstance (result, basestring):
-                yield result
+        if current_multiline_handler is not None:
+            if line != 'END':
+                current_multiline_handler.handle_line (context, line)
             else:
-                for subline in result:
-                    yield subline
+                result = current_multiline_handler.handle_end_span (context)
+                if isinstance (result, basestring):
+                    yield result
+                else:
+                    for subline in result:
+                        yield subline
+                current_multiline_handler = None
+        else:
+            a = line.split ()
+
+            if not len (a) or a[0] not in commands:
+                yield line
+            else:
+                result = commands[a[0]] (context, *a[1:])
+                if isinstance (result, basestring):
+                    yield result
+                elif isinstance (result, MultilineHandler):
+                    current_multiline_handler = result
+                else:
+                    for subline in result:
+                        yield subline
 
 
 def list_data_files (datadir='.'):
@@ -716,7 +740,38 @@ def process_repositories (items):
     return sorted (repos, key=lambda r: r._datekey)
 
 
+# Talks
+
+def summarize_talks (talks):
+    info = {}
+    info['n_total'] = len (talks)
+    info['n_invited'] = len ([t for t in talks if t.get ('invited', 'n') == 'y'])
+    info['n_conference'] = len ([t for t in talks if t.get ('conference', 'n') == 'y'])
+    return info
+
+
 # Commands for templates
+
+class MultilineSubstHandler (MultilineHandler):
+    def __init__ (self, info):
+        self.info = info
+        self.lines = []
+
+    def handle_line (self, context, line):
+        self.lines.append (line)
+
+    def handle_end_span (self, context):
+        tmpl = '\n'.join (self.lines)
+        return Formatter (context.render, True, tmpl) (self.info)
+
+
+def cmd_begin_subst (context, section):
+    try:
+        info = getattr (context, section)
+    except AttributeError:
+        die ('no such info section \"%s\" for BEGIN_SUBST command', section)
+    return MultilineSubstHandler (info)
+
 
 def cmd_cite_stats (context, template):
     info = compute_cite_stats (context.pubgroups.all_formal)
@@ -815,10 +870,12 @@ def setup_processing (render, datadir):
     context.props = [i for i in context.items if i.section == 'prop']
     context.time_allocs = compute_time_allocations (context.props)
     context.repos = process_repositories (context.items)
+    context.talk_info = summarize_talks ([i for i in context.items if i.section == 'talk'])
     context.cur_formatter = None
     context.my_abbrev_name = None
 
     commands = {}
+    commands['BEGIN_SUBST'] = cmd_begin_subst
     commands['CITESTATS'] = cmd_cite_stats
     commands['FORMAT'] = cmd_format
     commands['MYABBREVNAME'] = cmd_my_abbrev_name
