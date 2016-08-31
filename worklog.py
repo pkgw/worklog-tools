@@ -761,13 +761,26 @@ def compute_repo_stats (repos):
     return info
 
 
-# Talks
+# (Professional) Talks
 
 def summarize_talks (talks):
     info = {}
     info['n_total'] = len (talks)
     info['n_invited'] = len ([t for t in talks if t.get ('invited', 'n') == 'y'])
     info['n_conference'] = len ([t for t in talks if t.get ('conference', 'n') == 'y'])
+    return info
+
+
+# Public engagement
+
+def summarize_engagement (items):
+    info = {}
+    count = lambda c: len ([i for i in items if i.get ('class', '?') == c])
+
+    info['n_interviews'] = count ('interview')
+    info['n_outreach_events'] = count ('outreach_event')
+    info['n_press_releases'] = count ('press_release')
+    info['n_public_talks'] = count ('public_talk')
     return info
 
 
@@ -889,6 +902,7 @@ def setup_processing (render, datadir):
     context.cite_stats = compute_cite_stats (context.pubgroups.all_formal)
     context.repo_stats = compute_repo_stats (context.repos)
     context.talk_stats = summarize_talks ([i for i in context.items if i.section == 'talk'])
+    context.engagement_stats = summarize_engagement ([i for i in context.items if i.section == 'engagement'])
     context.cur_formatter = None
     context.my_abbrev_name = None
 

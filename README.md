@@ -246,6 +246,42 @@ Proposals are grouped by facility, and the total amount awarded in each
 proposal where both `mepi` and `accepted` are `y` is computed. The totals may
 then be inserted into the template using [TALLOCLIST](#talloclist).
 
+### Software repositories list
+
+I have attempted to develop a framework for quantifying contributions that
+come in the form of software. I wouldn’t say that anyone really has any good
+idea of how to do this, but I’ve given it my best shot. Software contributions
+are quantified by tracing contributions to version-control repositories in
+`[repo]` records. These follow a somewhat specific format so that the tools
+can compute statistics such as total numbers of commits. The relevant fields are:
+
+* `usercommits` — the number of commits you have made to the repository.
+* `allcommits` — the total number of commits in the repository.
+* `lastusercommit` — the date on which you last made a commit, in the form
+  `YYYY/MM/DD`.
+* `forks` — the number of times the repository has been “forked”, if the hosting
+  service happens to allow and track that.
+* `stars` — the number of times the repository has been “starred”, if the
+  hosting service happens to allow and track that.
+
+**TODO**: this feature needs more documentation.
+
+### Public engagement activities list
+
+Public engagement activities can be listed in `[engagement]` records. These
+can be quite freeform, but if you give these records a `class` field, the
+tools will be able to count up different types of engagement activities.
+Different classes of activity that are tracked are:
+
+* `interview` — a media interview
+* `outreach_event` — a public outreach event
+* `press_release` — a press release
+* `public_talk` — a public lecture
+
+See the [engagement_stats](#engagement_stats) statistics group that can be
+used with the [BEGIN_SUBST](#begin_subst-group) directive.
+
+
 ### Other derived information
 
 The [BEGIN_SUBST](#begin_subst-group) directive begins a block of text in
@@ -255,6 +291,8 @@ substitution groups are available:
 
 * [cite_stats](#cite_stats) — statistics regarding refereed publications
   drawn from [NASA ADS].
+* [engagement_stats](#engagement_stats) — statistics regarding public
+  engagement activities.
 * [repo_stats](#repo_stats) — statistics regarding open-source software
   contributions.
 * [talk_stats](#talk_stats) — statistics regarding professional talks
@@ -717,6 +755,15 @@ The fields within this group are:
 * `reffirstauth` — the total number of refereed first-author publications
 * `refpubs` — the total number of refereed publications
 * `year` — the year of the median date around which citations were updated.
+
+### engagement_stats
+
+These are statistics relating to public engagement activities. The fields are:
+
+* `n_interviews` — the number of `[engagement]` records with `class = interview`.
+* `n_outreach_events` — the number of `[engagement]` records with `class = outreach_event`.
+* `n_press_releases` — the number of `[engagement]` records with `class = press_release`.
+* `n_public_talks` — the number of `[engagement]` records with `class = public_talk`.
 
 ### repo_stats
 
