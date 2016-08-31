@@ -255,6 +255,8 @@ substitution groups are available:
 
 * [cite_stats](#cite_stats) — statistics regarding refereed publications
   drawn from [NASA ADS].
+* [repo_stats](#repo_stats) — statistics regarding open-source software
+  contributions.
 * [talk_stats](#talk_stats) — statistics regarding professional talks
 
 ### Miscellaneous template directives
@@ -699,6 +701,7 @@ Here are the different substitution groups known to the
 
 ### cite_stats
 
+These are statistics relating to refereed publications and their citations.
 The fields within this group are:
 
 * `day` — the numerical day of the month of the median date when citations
@@ -715,9 +718,23 @@ The fields within this group are:
 * `refpubs` — the total number of refereed publications
 * `year` — the year of the median date around which citations were updated.
 
+### repo_stats
+
+These are statistics relating to open-source software contributions. The
+fields within this group are:
+
+* `total_repos` — the total number of tracked repositories.
+* `total_commits` — the total number of commits made by you in all repositories.
+* `primary_author_stars` — the total number of GitHub stars given to repositories
+  in which you are the primary author, which we define as those in which you have
+  made more than 50% of the commits.
+* `primary_author_forks` — the total number of GitHub forks of repositories
+  in which you are the primary author.
+
 ### talk_stats
 
-The fields within this group are:
+These are statistics relating to professional talks you have given. The fields
+within this group are:
 
 * `n_total` — the total number of talks
 * `n_invited` — the number of talks with `invited = y`

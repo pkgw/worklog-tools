@@ -1,5 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-# Copyright 2014-2015 Peter Williams <peter@newton.cx>
+# Copyright 2014-2016 Peter Williams <peter@newton.cx>
 # Licensed under the GNU General Public License, version 3 or higher.
 
 """
@@ -740,6 +740,27 @@ def process_repositories (items):
     return sorted (repos, key=lambda r: r._datekey)
 
 
+def compute_repo_stats (repos):
+    info = {}
+    info['total_repos'] = len (repos)
+
+    tc = 0
+    pa_stars = 0
+    pa_forks = 0
+
+    for repo in repos:
+        tc += int (repo.usercommits)
+
+        if 2 * int (repo.usercommits) > int (repo.allcommits): # >=50% of commits ("primary author")?
+            pa_stars += int (repo.get ('stars', '0'))
+            pa_forks += int (repo.get ('forks', '0'))
+
+    info['total_commits'] = tc
+    info['primary_author_stars'] = pa_stars
+    info['primary_author_forks'] = pa_forks
+    return info
+
+
 # Talks
 
 def summarize_talks (talks):
@@ -865,8 +886,9 @@ def setup_processing (render, datadir):
     context.props = [i for i in context.items if i.section == 'prop']
     context.time_allocs = compute_time_allocations (context.props)
     context.repos = process_repositories (context.items)
-    context.talk_stats = summarize_talks ([i for i in context.items if i.section == 'talk'])
     context.cite_stats = compute_cite_stats (context.pubgroups.all_formal)
+    context.repo_stats = compute_repo_stats (context.repos)
+    context.talk_stats = summarize_talks ([i for i in context.items if i.section == 'talk'])
     context.cur_formatter = None
     context.my_abbrev_name = None
 
