@@ -929,7 +929,7 @@ _ads_url_tmpl = (r'http://adsabs.harvard.edu/cgi-bin/nph-abs_connect?'
 
 
 class ADSCountError (Exception):
-    def __init__ (self, fmt, args):
+    def __init__ (self, fmt, *args):
         super (ADSCountError, self).__init__ (fmt % args)
 
 
@@ -947,7 +947,7 @@ def get_ads_cite_count (bibcode):
     except httplib.BadStatusLine as e:
         raise ADSCountError ('received bad HTTP status: %r', e)
     except URLError as e:
-        raise ADSCountError (str (e))
+        raise ADSCountError ('%s', e)
 
     if lastnonempty is None:
         raise ADSCountError ('got only empty lines')
