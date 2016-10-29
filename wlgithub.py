@@ -252,11 +252,11 @@ def get_repo_impact_stats (gh, reponame):
         if first_try is not None:
             return first_try
 
-        for i in xrange (5):
+        for i in xrange (10):
             result = func ()
             if result is not None:
                 return result
-            sleep (1)
+            sleep (3)
         raise Exception ('function %r took too long' % func)
 
     contrib = repo.get_stats_contributors ()
