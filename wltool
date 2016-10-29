@@ -384,6 +384,9 @@ that API access to GitHub has been set up."""
             except GithubException as e:
                 warn ('GitHub exception: %s', e)
                 continue
+            except Exception as e:
+                warn ('exception: %s (%s)', e, e.__class__.__name__)
+                continue
 
 
 # The dispatcher
