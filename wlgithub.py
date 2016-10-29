@@ -101,16 +101,21 @@ def run_bigquery (jobs, qstring):
         )
         res = req.execute ()
 
+        if 'rows' not in res:
+            print ('[no rows, looping ...]')
+            continue
+
         if colnames is None:
             try:
                 colnames = [s['name'] for s in res['schema']['fields']]
             except KeyError as e:
                 # grrr sometimes this happens still
                 from pprint import pprint
-                print ('KeyError')
+                print ('XXX bizzah KeyError:')
                 pprint (e)
-                print ('result')
+                print ('XXX result:')
                 pprint (res)
+                print ('XXX raising:')
                 raise
 
         for rowdata in res['rows']:
