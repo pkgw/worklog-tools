@@ -5,7 +5,7 @@
 ConfigParser/configparser."""
 
 from __future__ import absolute_import, division, print_function
-from six import string_types
+from six import string_types, text_type
 from six.moves import range
 
 import io
@@ -13,9 +13,7 @@ import io
 __all__ = ('Holder readStream read FileChunk '
            'mutateStream mutate mutateInPlace').split ()
 
-## quickutil: holder
-#- snippet: holder.py (2012 Mar 29)
-#- SHA1: bc9ad74474ffc74f18a12675f7422f0c5963df59
+
 class Holder (object):
     def __init__ (self, **kwargs):
         self.set (**kwargs)
@@ -57,7 +55,7 @@ class Holder (object):
             if v is None:
                 continue
             yield k, v
-## end
+
 
 import re, os
 
@@ -78,17 +76,17 @@ def readStream (stream):
             # New section
             if section is not None:
                 if key is not None:
-                    section.setone (key, data.strip ().decode ('utf8'))
+                    section.setone (key.decode('utf8'), data.strip ().decode ('utf8'))
                     key = data = None
                 yield section
 
             section = Holder ()
-            section.section = m.group (1)
+            section.section = m.group (1).decode('utf8')
             continue
 
         if len (line.strip ()) == 0:
             if key is not None:
-                section.setone (key, data.strip ().decode ('utf8'))
+                section.setone (key.decode('utf8'), data.strip ().decode ('utf8'))
                 key = data = None
             continue
 
@@ -97,10 +95,10 @@ def readStream (stream):
             if section is None:
                 raise Exception ('key seen without section!')
             if key is not None:
-                section.setone (key, data.strip ().decode ('utf8'))
+                section.setone (key.decode('utf8'), data.strip ().decode ('utf8'))
             key = m.group (1)
             data = m.group (2).replace (rb'\"', b'"').replace (rb'\n', b'\n').replace (rb'\\', b'\\')
-            section.setone (key, data.decode ('utf8'))
+            section.setone (key.decode('utf8'), data.decode ('utf8'))
             key = data = None
             continue
 
@@ -109,7 +107,7 @@ def readStream (stream):
             if section is None:
                 raise Exception ('key seen without section!')
             if key is not None:
-                section.setone (key, data.strip ().decode ('utf8'))
+                section.setone (key.decode('utf8'), data.strip ().decode ('utf8'))
             key = m.group (1)
             data = m.group (2)
             if not len (data):
@@ -126,7 +124,7 @@ def readStream (stream):
 
     if section is not None:
         if key is not None:
-            section.setone (key, data.strip ().decode ('utf8'))
+            section.setone (key.decode('utf8'), data.strip ().decode ('utf8'))
         yield section
 
 

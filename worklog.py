@@ -115,7 +115,7 @@ def process_template (stream, commands, context):
         line = line.decode ('utf8').rstrip ()
 
         if current_multiline_handler is not None:
-            if line != b'END':
+            if line != 'END':
                 current_multiline_handler.handle_line (context, line)
             else:
                 result = current_multiline_handler.handle_end_span (context)
@@ -928,10 +928,7 @@ def cmd_today (context):
     # This is a little bit gross.
     yr, mo, dy = localtime (time ())[:3]
     text = '%s%s%d,%s%d.' % (months[mo - 1], nbsp, dy, nbsp, yr)
-    TMP = context.render (text)
-    import sys
-    print('ZZ:', repr(TMP), file=sys.stderr)
-    return TMP
+    return context.render (text)
 
 
 def setup_processing (render, datadir):

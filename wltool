@@ -221,8 +221,7 @@ See the README.md that came with this package for more detailed information."""
 
     with io.open (tmpl, 'rb') as f:
         for outline in process_template (f, commands, context):
-            print('QQ', repr(outline), file=sys.stderr)
-            print(outline.encode ('utf8'))
+            print(outline)
 
 
 cli_latex = _cli_render
