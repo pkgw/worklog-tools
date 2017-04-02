@@ -4,6 +4,12 @@
 """A simple parser for ini-style files that's better than Python's
 ConfigParser/configparser."""
 
+from __future__ import absolute_import, division, print_function
+from six import string_types
+from six.moves import range
+
+import io
+
 __all__ = ('Holder readStream read FileChunk '
            'mutateStream mutate mutateInPlace').split ()
 
@@ -16,12 +22,12 @@ class Holder (object):
 
     def __str__ (self):
         d = self.__dict__
-        s = sorted (d.iterkeys ())
+        s = sorted (d.keys ())
         return '{' + ', '.join ('%s=%s' % (k, d[k]) for k in s) + '}'
 
     def __repr__ (self):
         d = self.__dict__
-        s = sorted (d.iterkeys ())
+        s = sorted (d.keys ())
         return '%s(%s)' % (self.__class__.__name__,
                            ', '.join ('%s=%r' % (k, d[k]) for k in s))
 
@@ -45,7 +51,7 @@ class Holder (object):
         return new
 
     def iteritems (self):
-        for k, v in self.__dict__.iteritems ():
+        for k, v in self.__dict__.items ():
             if k[0] == '_':
                 continue
             if v is None:
@@ -55,9 +61,9 @@ class Holder (object):
 
 import re, os
 
-sectionre = re.compile (r'^\[(.*)]\s*$')
-keyre = re.compile (r'^(\S+)\s*=(.*)$') # leading space chomped later
-escre = re.compile (r'^(\S+)\s*=\s*"(.*)"\s*$')
+sectionre = re.compile (rb'^\[(.*)]\s*$')
+keyre = re.compile (rb'^(\S+)\s*=(.*)$') # leading space chomped later
+escre = re.compile (rb'^(\S+)\s*=\s*"(.*)"\s*$')
 
 def readStream (stream):
     section = None
@@ -65,7 +71,7 @@ def readStream (stream):
     data = None
 
     for fullline in stream:
-        line = fullline.split ('#', 1)[0]
+        line = fullline.split (b'#', 1)[0]
 
         m = sectionre.match (line)
         if m is not None:
@@ -93,7 +99,7 @@ def readStream (stream):
             if key is not None:
                 section.setone (key, data.strip ().decode ('utf8'))
             key = m.group (1)
-            data = m.group (2).replace (r'\"', '"').replace (r'\n', '\n').replace (r'\\', '\\')
+            data = m.group (2).replace (rb'\"', b'"').replace (rb'\n', b'\n').replace (rb'\\', b'\\')
             section.setone (key, data.decode ('utf8'))
             key = data = None
             continue
@@ -107,13 +113,13 @@ def readStream (stream):
             key = m.group (1)
             data = m.group (2)
             if not len (data):
-                data = ' '
-            elif not data[-1].isspace ():
-                data += ' '
+                data = b' '
+            elif data[-1] not in b' \t\r\n':
+                data += b' '
             continue
 
-        if line[0].isspace () and key is not None:
-            data += line.strip () + ' '
+        if line[0] in b' \t' and key is not None:
+            data += line.strip () + b' '
             continue
 
         raise Exception ('unparsable line: ' + line[:-1])
@@ -125,8 +131,8 @@ def readStream (stream):
 
 
 def read (stream_or_path):
-    if isinstance (stream_or_path, basestring):
-        return readStream (open (stream_or_path))
+    if isinstance (stream_or_path, string_types):
+        return readStream (io.open (stream_or_path, 'rb'))
     return readStream (stream_or_path)
 
 
@@ -140,18 +146,18 @@ def writeStream (stream, items):
         if first:
             first = False
         else:
-            print >>stream
+            print(file=stream)
 
-        print >>stream, '[%s]' % i.section
+        print('[%s]' % i.section, file=stream)
 
-        for k, v in sorted (i.iteritems ()):
+        for k, v in sorted (i.items ()):
             if k == 'section':
                 continue
-            print >>stream, k, '=', unicode (v).encode ('utf-8')
+            print(k, '=', str (v).encode ('utf-8'), file=stream)
 
 
 def write (stream_or_path, items):
-    if isinstance (stream_or_path, basestring):
+    if isinstance (stream_or_path, string_types):
         return writeStream (open (stream_or_path, 'w'), items)
     return writeStream (stream_or_path, items)
 
@@ -176,7 +182,7 @@ class FileChunk (object):
         newline = ((u'%s = %s' % (name, value)) + os.linesep).encode ('utf8')
         first = True
 
-        for i in xrange (len (self._lines)):
+        for i in range (len (self._lines)):
             assoc, line = self._lines[i]
 
             if assoc != name:
@@ -191,7 +197,7 @@ class FileChunk (object):
 
         if first:
             # Need to append the line to the last block
-            for i in xrange (len (self._lines) - 1, -1, -1):
+            for i in range (len (self._lines) - 1, -1, -1):
                 if self._lines[i][0] is not None:
                     break
 
@@ -288,10 +294,10 @@ def mutateStream (instream, outstream):
 
 
 def mutate (instream_or_path, outstream_or_path, outmode='w'):
-    if isinstance (instream_or_path, basestring):
+    if isinstance (instream_or_path, string_types):
         instream_or_path = open (instream_or_path)
 
-    if isinstance (outstream_or_path, basestring):
+    if isinstance (outstream_or_path, string_types):
         outstream_or_path = open (outstream_or_path, outmode)
 
     return mutateStream (instream_or_path, outstream_or_path)
@@ -315,4 +321,4 @@ def mutateInPlace (inpath):
                 os.unlink (tmppath)
             except Exception:
                 pass
-            raise et, ev, etb
+            raise et(ev).with_traceback(etb)

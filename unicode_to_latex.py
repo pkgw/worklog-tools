@@ -12,6 +12,9 @@ That is,
   unicode_to_latex(u) = unicode_to_latex_string(u).encode('ascii').
 """
 
+from __future__ import absolute_import, division, print_function
+from six import text_type
+
 # Based on https://gist.github.com/798549 (owned by github user
 # piquadrat), but modified to make a table usable with
 # unicode.translate(). I had to comment out a few things and also
@@ -2391,7 +2394,7 @@ unicode_to_latex_table_base = {
 
 from unicodedata import normalize
 
-unicode_to_latex_table = dict ((ord (k), unicode (v))
-                               for k, v in unicode_to_latex_table_base.iteritems ())
+unicode_to_latex_table = dict ((ord(k), text_type(v))
+                               for k, v in unicode_to_latex_table_base.items ())
 unicode_to_latex_string = lambda u: normalize ('NFKC', u).translate (unicode_to_latex_table)
 unicode_to_latex = lambda u: normalize ('NFKC', u).translate (unicode_to_latex_table).encode ('ascii')

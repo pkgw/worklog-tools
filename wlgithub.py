@@ -7,7 +7,8 @@ the best available option for capturing my open-source efforts.
 
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import absolute_import, division, print_function
+from six.moves import range, zip
 
 import json, os.path, time
 
@@ -76,7 +77,7 @@ def run_bigquery (jobs, qstring):
     plugging until you've seen them all.
 
     """
-    from itertools import izip
+
     from sys import maxsize
 
     body = {'query': qstring}
@@ -119,7 +120,7 @@ def run_bigquery (jobs, qstring):
                 raise
 
         for rowdata in res['rows']:
-            yield dict (izip (colnames, (cell['v'] for cell in rowdata['f'])))
+            yield dict (zip (colnames, (cell['v'] for cell in rowdata['f'])))
 
         rows_seen += len (res['rows'])
         total_rows = get_total_rows (res)
@@ -162,7 +163,7 @@ WHERE
 '''
 
     queries = []
-    for year in xrange (first_year, cur_year):
+    for year in range (first_year, cur_year):
         y1 = year_ts_template.format (year)
         y2 = year_ts_template.format (year+1)
         queries.append (query_template.format (y1, y2, format_string_literal (login)))
@@ -252,7 +253,7 @@ def get_repo_impact_stats (gh, reponame):
         if first_try is not None:
             return first_try
 
-        for i in xrange (10):
+        for i in range (10):
             result = func ()
             if result is not None:
                 return result

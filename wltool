@@ -20,6 +20,10 @@ workog commands are:
 Running 'wltool <command> --help' may give more information on the command
 in question."""
 
+from __future__ import absolute_import, division, print_function
+
+import io
+
 from worklog import *
 
 
@@ -43,7 +47,7 @@ Parsing files from other origins will probably fail."""
     # that could be helpful for debugging.
 
     if len (argv) != 4 or '--help' in argv:
-        print cli_bootstrap_bibtex.__doc__
+        print(cli_bootstrap_bibtex.__doc__)
         raise SystemExit (1)
 
     bibpath = argv[1]
@@ -73,7 +77,7 @@ See the README.md that came with this package for more detailed information."""
     import sys
 
     if len (argv) not in (2, 3) or '--help' in argv:
-        print cli_extract.__doc__
+        print(cli_extract.__doc__)
         raise SystemExit (1)
 
     sectname = argv[1]
@@ -98,7 +102,7 @@ that API access to Google BigQuery and GitHub have been set up.
 """
 
     if len (argv) not in (1, 2) or '--help' in argv:
-        print cli_github_repos.__doc__
+        print(cli_github_repos.__doc__)
         raise SystemExit (1)
 
     if len (argv) < 2:
@@ -128,7 +132,7 @@ that API access to Google BigQuery and GitHub have been set up.
 
     for name in wlgithub.get_repos_with_pushes_from_user (jobs, login):
         flag = '  ' if name in known_repos else '**'
-        print '%-40s %s' % (name, flag)
+        print('%-40s %s' % (name, flag))
 
 
 def cli_nsf_collabs (argv):
@@ -145,7 +149,7 @@ The output will be formatted for inclusion in a LaTeX document.
 """
 
     if len (argv) not in (1, 2) or '--help' in argv:
-        print cli_nsf_collabs.__doc__
+        print(cli_nsf_collabs.__doc__)
         raise SystemExit (1)
 
     if len (argv) < 2:
@@ -168,7 +172,7 @@ The output will be formatted for inclusion in a LaTeX document.
             continue
 
         dbits = i.pubdate.split ('/')
-        iyear, imonth = map (int, dbits[:2])
+        iyear, imonth = list(map (int, dbits[:2]))
         if iyear < cutoff_year or imonth < cutoff_month:
             continue
 
@@ -181,7 +185,7 @@ The output will be formatted for inclusion in a LaTeX document.
     # Print, sorted by last name, in a format just ripe for filling in.
 
     for rest, surname in sorted (names, key=lambda t: t[1]):
-        print unicode_to_latex ('%s %s (),' % (rest, surname))
+        print(unicode_to_latex ('%s %s (),' % (rest, surname)))
 
 
 def _cli_render (argv):
@@ -196,7 +200,7 @@ See the README.md that came with this package for more detailed information."""
     fmtname = argv[0]
 
     if len (argv) not in (2, 3) or '--help' in argv:
-        print _cli_render.__doc__ % fmtname
+        print(_cli_render.__doc__ % fmtname)
         raise SystemExit (1)
 
     tmpl = argv[1]
@@ -215,9 +219,10 @@ See the README.md that came with this package for more detailed information."""
 
     context, commands = setup_processing (render, datadir)
 
-    with open (tmpl) as f:
+    with io.open (tmpl, 'rb') as f:
         for outline in process_template (f, commands, context):
-            print outline.encode ('utf8')
+            print('QQ', repr(outline), file=sys.stderr)
+            print(outline.encode ('utf8'))
 
 
 cli_latex = _cli_render
@@ -233,7 +238,7 @@ specified, the data directory is assumed to be the current directory.
 See the README.md that came with this package for more detailed information."""
 
     if len (argv) not in (1, 2) or '--help' in argv:
-        print cli_summarize.__doc__
+        print(cli_summarize.__doc__)
         raise SystemExit (1)
 
     if len (argv) < 2:
@@ -248,8 +253,8 @@ See the README.md that came with this package for more detailed information."""
         counts[i.section] = counts.get (i.section, 0) + 1
         maxsectlen = max (maxsectlen, len (i.section))
 
-    for section, count in sorted (counts.iteritems ()):
-        print '% *s: %d' % (maxsectlen, section, count)
+    for section, count in sorted (counts.items ()):
+        print('% *s: %d' % (maxsectlen, section, count))
 
 
 _update_minwait = 7 * 24 * 3600 # 1 week
@@ -263,7 +268,7 @@ Prints out a summary of new citations by bibcode.
 See the README.md that came with this package for more detailed information."""
 
     if len (argv) not in (1, 2) or '--help' in argv:
-        print cli_update_cites.__doc__
+        print(cli_update_cites.__doc__)
         raise SystemExit (1)
 
     if len (argv) < 2:
@@ -301,13 +306,13 @@ See the README.md that came with this package for more detailed information."""
             if lastupdate + _update_minwait > now:
                 continue
 
-            print bibcode, ' *'[firstauth] + ' R'[reffed], '...',
+            print(bibcode, ' *'[firstauth] + ' R'[reffed], '...', end=' ')
             try:
                 newcites = get_ads_cite_count (bibcode)
                 item.set ('adscites', nowstr + str (newcites))
-                print '%d (%+d)' % (newcites, newcites - curcites)
+                print('%d (%+d)' % (newcites, newcites - curcites))
             except ADSCountError as e:
-                print ('error!: %s' % e)
+                print(('error!: %s' % e))
 
 
 def cli_update_github (argv):
@@ -318,7 +323,7 @@ contributed to, and update the worklog records as appropriate. This requires
 that API access to GitHub has been set up."""
 
     if len (argv) not in (1, 2) or '--help' in argv:
-        print cli_update_github.__doc__
+        print(cli_update_github.__doc__)
         raise SystemExit (1)
 
     if len (argv) < 2:
@@ -363,7 +368,7 @@ that API access to GitHub has been set up."""
 
             name = item.data.name
 
-            print name, '...'
+            print(name, '...')
             try:
                 #print gh.get_rate_limit ().rate.remaining
                 mycommits = wlgithub.get_repo_commit_stats (gh, name)
@@ -395,7 +400,7 @@ if __name__ == '__main__':
     import sys
 
     if len (sys.argv) < 2 or sys.argv[1] == '--help':
-        print __doc__
+        print(__doc__)
         raise SystemExit (0)
 
     cmdname = sys.argv[1]

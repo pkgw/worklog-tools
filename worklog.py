@@ -6,13 +6,45 @@
 Shared routines for my worklog tools.
 """
 
-__all__ = b'''nbsp months Holder die warn open_template slurp_template
-              process_template list_data_files load unicode_to_latex
-              html_escape Markup MupText MupItalics MupBold MupUnderline
-              MupLink MupJoin MupList render_latex render_html Formatter
-              ADSCountError parse_ads_cites canonicalize_name surname best_url
-              cite_info compute_cite_stats partition_pubs setup_processing
-              get_ads_cite_count bootstrap_bibtex'''.split ()
+from __future__ import absolute_import, division, print_function
+from six import string_types, text_type
+from six.moves import map, range, zip
+
+__all__ = str('''
+nbsp
+months
+Holder
+die
+warn
+open_template
+slurp_template
+process_template
+list_data_files
+load
+unicode_to_latex
+html_escape
+Markup
+MupText
+MupItalics
+MupBold
+MupUnderline
+MupLink
+MupJoin
+MupList
+render_latex
+render_html
+Formatter
+ADSCountError
+parse_ads_cites
+canonicalize_name
+surname
+best_url
+cite_info
+compute_cite_stats
+partition_pubs
+setup_processing
+get_ads_cite_count
+bootstrap_bibtex''').split ()
 
 nbsp = u'\u00a0'
 months = 'Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'.split ()
@@ -38,7 +70,7 @@ def warn (fmt, *args):
         text = str (fmt)
 
     import sys
-    print >>sys.stderr, 'warning:', text
+    print('warning:', text, file=sys.stderr)
 
 
 def open_template (stem):
@@ -83,11 +115,11 @@ def process_template (stream, commands, context):
         line = line.decode ('utf8').rstrip ()
 
         if current_multiline_handler is not None:
-            if line != 'END':
+            if line != b'END':
                 current_multiline_handler.handle_line (context, line)
             else:
                 result = current_multiline_handler.handle_end_span (context)
-                if isinstance (result, basestring):
+                if isinstance (result, string_types):
                     yield result
                 else:
                     for subline in result:
@@ -100,7 +132,7 @@ def process_template (stream, commands, context):
                 yield line
             else:
                 result = commands[a[0]] (context, *a[1:])
-                if isinstance (result, basestring):
+                if isinstance (result, string_types):
                     yield result
                 elif isinstance (result, MultilineHandler):
                     current_multiline_handler = result
@@ -144,12 +176,12 @@ def load (datadir='.'):
 # worrisome, and some constructs just don't work well in that model (e.g.
 # tables). So we do this silliness instead.
 
-from unicode_to_latex import unicode_to_latex
+from unicode_to_latex import unicode_to_latex, unicode_to_latex_string
 
 def html_escape (text):
     """Escape special characters for our dumb subset of HTML."""
 
-    return (unicode (text)
+    return (text_type (text)
             .replace ('&', '&amp;')
             .replace ('<', '&lt;')
             .replace ('>', '&gt;')
@@ -180,10 +212,10 @@ def _maybe_wrap_text (thing):
 
 class MupText (Markup):
     def __init__ (self, text):
-        self.text = unicode (text)
+        self.text = text_type (text)
 
     def _latex (self):
-        return [unicode_to_latex (self.text)]
+        return [unicode_to_latex_string (self.text)]
 
     def _html (self):
         return [html_escape (self.text)]
@@ -224,11 +256,11 @@ class MupUnderline (Markup):
 
 class MupLink (Markup):
     def __init__ (self, url, inner):
-        self.url = unicode (url)
+        self.url = str (url)
         self.inner = _maybe_wrap_text (inner)
 
     def _latex (self):
-        return ([u'\\href{', self.url.replace ('%', '\\%'), u'}{'] +
+        return ([u'\\href{', self.url.replace (u'%', u'\\%'), u'}{'] +
                 self.inner._latex () + [u'}'])
 
     def _html (self):
@@ -315,11 +347,11 @@ class MupList (Markup):
 
 def render_latex (value):
     if isinstance (value, int):
-        return unicode (value)
-    if isinstance (value, unicode):
-        return unicode_to_latex (value)
-    if isinstance (value, str):
-        return unicode_to_latex (unicode (value))
+        return str (value)
+    if isinstance (value, text_type):
+        return unicode_to_latex_string (value)
+    if isinstance (value, string_types):
+        return unicode_to_latex_string (text_type (value))
     if isinstance (value, Markup):
         return value.latex ()
     raise ValueError ('don\'t know how to render %r into latex' % value)
@@ -327,11 +359,11 @@ def render_latex (value):
 
 def render_html (value):
     if isinstance (value, int):
-        return unicode (value)
-    if isinstance (value, unicode):
+        return str (value)
+    if isinstance (value, text_type):
         return html_escape (value)
-    if isinstance (value, str):
-        return html_escape (unicode (value))
+    if isinstance (value, string_types):
+        return html_escape (text_type (value))
     if isinstance (value, Markup):
         return value.html ()
     raise ValueError ('don\'t know how to render %r into HTML' % value)
@@ -350,7 +382,7 @@ class Formatter (object):
        <a href="http://...">http://...</a>
 
     This particular tactic is needed to work with textual URLs in LaTeX, since
-    the \url{} and \href{} commands redefine character codes such that the
+    the \\url{} and \\href{} commands redefine character codes such that the
     standard LaTeX escaping mechanism is inappropriate. In particular, URLs
     with tildes were breaking.
 
@@ -441,7 +473,10 @@ def surname (name):
 
 
 def best_url (item):
-    from urllib2 import quote
+    try:
+        from urllib.parse import quote
+    except ImportError:
+        from urllib2 import quote
 
     if item.has ('bibcode'):
         return 'http://adsabs.harvard.edu/abs/' + quote (item.bibcode)
@@ -512,7 +547,7 @@ def cite_info (oitem, context):
         aitem.bold_if_first_title = oitem.title
 
     # Pub year and nicely-formatted date
-    aitem.year, aitem.month = map (int, oitem.pubdate.split ('/'))
+    aitem.year, aitem.month = list(map (int, oitem.pubdate.split ('/')))
     aitem.pubdate = u'%d%s%s' % (aitem.year, nbsp, months[aitem.month - 1])
 
     # Template-friendly citation count
@@ -530,7 +565,10 @@ def cite_info (oitem, context):
         aitem.lcite = MupLink (url, aitem.cite)
 
     # Other links for the web pub list
-    from urllib2 import quote as urlquote
+    try:
+        from urllib.parse import quote as urlquote
+    except ImportError:
+        from urllib2 import quote as urlquote
 
     aitem.abstract_link = u''
     aitem.preprint_link = u''
@@ -702,15 +740,18 @@ def compute_time_allocations (props):
                          facil, u0, units)
                 allocs[facil] = (q0 + quantity, u0)
 
-    return sorted ((Holder (facil=k, total=unicode (v[0]), unit=v[1])
-                    for (k, v) in allocs.iteritems ()),
+    return sorted ((Holder (facil=k, total=text_type(v[0]), unit=v[1])
+                    for (k, v) in allocs.items ()),
                    key=lambda h: h.facil)
 
 
 # Utilities for dealing with public code repositories
 
 def process_repositories (items):
-    from urllib2 import quote as urlquote
+    try:
+        from urllib.parse import quote as urlquote
+    except ImportError:
+        from urllib2 import quote as urlquote
     repos = []
 
     for i in items:
@@ -887,7 +928,10 @@ def cmd_today (context):
     # This is a little bit gross.
     yr, mo, dy = localtime (time ())[:3]
     text = '%s%s%d,%s%d.' % (months[mo - 1], nbsp, dy, nbsp, yr)
-    return context.render (text)
+    TMP = context.render (text)
+    import sys
+    print('ZZ:', repr(TMP), file=sys.stderr)
+    return TMP
 
 
 def setup_processing (render, datadir):
@@ -934,8 +978,15 @@ class ADSCountError (Exception):
 
 
 def get_ads_cite_count (bibcode):
-    import httplib
-    from urllib2 import urlopen, quote, URLError
+    try:
+        from http import client
+        from urllib.request import urlopen
+        from urllib.parse import quote
+        from urllib.error import URLError
+    except ImportError:
+        import httplib as client
+        from urllib2 import urlopen, quote, URLError
+
     url = _ads_url_tmpl % {'bibcode': quote (bibcode)}
     lastnonempty = None
 
@@ -944,7 +995,7 @@ def get_ads_cite_count (bibcode):
             line = line.strip ()
             if len (line):
                 lastnonempty = line
-    except httplib.BadStatusLine as e:
+    except client.BadStatusLine as e:
         raise ADSCountError ('received bad HTTP status: %r', e)
     except URLError as e:
         raise ADSCountError ('%s', e)
@@ -970,7 +1021,7 @@ def _write_with_wrapping (outfile, key, value):
     # we assume whitespace is fungible.
 
     if '#' in value:
-        print >>outfile, ('%s = "%s"' % (key, value)).encode ('utf-8')
+        print(('%s = "%s"' % (key, value)).encode ('utf-8'), file=outfile)
         return
 
     bits = value.split ()
@@ -987,7 +1038,7 @@ def _write_with_wrapping (outfile, key, value):
                 s = '%s = %s' % (key, ' '.join (bits[head:tail]))
             else:
                 s = '  %s' % (' '.join (bits[head:tail]))
-            print >>outfile, s.encode ('utf-8')
+            print(s.encode ('utf-8'), file=outfile)
             head = tail
             ofs = 1
 
@@ -998,7 +1049,7 @@ def _write_with_wrapping (outfile, key, value):
     else:
         return
 
-    print >>outfile, s.encode ('utf-8')
+    print(s.encode ('utf-8'), file=outfile)
 
 
 def _bib_fixup_author (text):
@@ -1043,7 +1094,7 @@ class BibCustomizer (object):
         from bibtexparser.customization import author, type, convert_to_unicode
         rec = type (convert_to_unicode (rec))
 
-        for key in rec.keys ():
+        for key in list(rec.keys ()):
             val = rec.get (key)
             val = (val
                    .replace ('{\\nbsp}', nbsp)
@@ -1064,7 +1115,7 @@ class BibCustomizer (object):
                 text = text.replace ('{', '').replace ('}', '').replace ('~', ' ')
                 surname, rest = text.split (',', 1)
                 if surname.lower () == self.mylsurname:
-                    rec['wl_mypos'] = unicode (idx + 1)
+                    rec['wl_mypos'] = text_type(idx + 1)
                 newauths.append (rest + ' ' + surname.replace (' ', '_'))
 
             rec['author'] = '; '.join (newauths)
@@ -1090,25 +1141,25 @@ def bootstrap_bibtex (bibfile, outdir, mysurname):
         else:
             outfile = open (os.path.join (outdir, year + '.txt'), 'w')
             byyear[year] = outfile
-            print >>outfile, '# -*- conf -*-'
-            print >>outfile, '# XXX for all records, refereed status is guessed crudely'
+            print('# -*- conf -*-', file=outfile)
+            print('# XXX for all records, refereed status is guessed crudely', file=outfile)
 
-        print >>outfile, '\n[pub]'
+        print('\n[pub]', file=outfile)
 
         if 'title' in rec:
             _write_with_wrapping (outfile, 'title', rec['title'])
         else:
-            print >>outfile, 'title = ? # XXX no title for this record'
+            print('title = ? # XXX no title for this record', file=outfile)
 
         if 'author' in rec:
             _write_with_wrapping (outfile, 'authors', rec['author'])
         else:
-            print >>outfile, 'authors = ? # XXX no authors for this record'
+            print('authors = ? # XXX no authors for this record', file=outfile)
 
         if 'wl_mypos' in rec:
             _write_with_wrapping (outfile, 'mypos', rec['wl_mypos'])
         else:
-            print >>outfile, 'mypos = 0 # XXX cannot determine "mypos" for this record'
+            print('mypos = 0 # XXX cannot determine "mypos" for this record', file=outfile)
 
         if 'year' in rec and 'month' in rec:
             _write_with_wrapping (outfile, 'pubdate',
@@ -1116,9 +1167,9 @@ def bootstrap_bibtex (bibfile, outdir, mysurname):
                                   _bib_months.get (rec['month'].lower (),
                                                    rec['month']))
         elif 'year' in rec:
-            print >>outfile, 'pubdate = %s/01 # XXX actual month unknown' % rec['year']
+            print('pubdate = %s/01 # XXX actual month unknown' % rec['year'], file=outfile)
         else:
-            print >>outfile, 'pubdate = ? # XXX no year and month for this record'
+            print('pubdate = ? # XXX no year and month for this record', file=outfile)
 
         if 'id' in rec:
             _write_with_wrapping (outfile, 'bibcode', rec['id'])
@@ -1130,13 +1181,13 @@ def bootstrap_bibtex (bibfile, outdir, mysurname):
             _write_with_wrapping (outfile, 'doi', rec['doi'])
 
         refereed = 'journal' in rec
-        print >>outfile, 'refereed = %s' % 'ny'[refereed]
+        print('refereed = %s' % 'ny'[refereed], file=outfile)
 
         cite = _bib_cite (rec)
         if cite is not None:
             _write_with_wrapping (outfile, 'cite', cite)
         else:
-            print >>outfile, 'cite = ? # XXX cannot infer citation text'
+            print('cite = ? # XXX cannot infer citation text', file=outfile)
 
-    for f in byyear.itervalues ():
+    for f in byyear.values ():
         f.close ()
