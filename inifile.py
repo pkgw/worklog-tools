@@ -148,7 +148,7 @@ def writeStream (stream, items):
 
         print('[%s]' % i.section, file=stream)
 
-        for k, v in sorted (i.items ()):
+        for k, v in sorted (i.iteritems ()):
             if k == 'section':
                 continue
             print(k, '=', str (v).encode ('utf-8'), file=stream)
