@@ -1000,7 +1000,7 @@ def get_ads_cite_count (bibcode):
     if lastnonempty is None:
         raise ADSCountError ('got only empty lines')
 
-    if lastnonempty.startswith ('Retrieved 0 abstracts'):
+    if lastnonempty.startswith(b'Retrieved 0 abstracts'):
         raise ADSCountError ('no such bibcode')
 
     try:
