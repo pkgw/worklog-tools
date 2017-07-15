@@ -129,10 +129,20 @@ that API access to Google BigQuery and GitHub have been set up.
     gh = wlgithub.get_github_service (datadir)
     login = gh.get_user ().login
     jobs = wlgithub.get_bigquery_jobs_service (datadir, [])
+    n_feedstock = 0
 
     for name in wlgithub.get_repos_with_pushes_from_user (jobs, login):
+        if name.endswith('-feedstock'):
+            # conda-forge has zillions of feedstock repos; skip em
+            n_feedstock += 1
+            continue
+
         flag = '  ' if name in known_repos else '**'
-        print('%-40s %s' % (name, flag))
+        print('%-54s %s' % (name, flag))
+
+    if n_feedstock:
+        print()
+        print('... and %d conda-forge-related feedstock repos' % n_feedstock)
 
 
 def cli_nsf_collabs (argv):
@@ -378,7 +388,7 @@ that API access to GitHub has been set up."""
                                                                     mycommits.latest_date.day))
 
                 impact = wlgithub.get_repo_impact_stats (gh, name)
-                item.set ('desc', impact.description)
+                item.set ('cur_gh_desc', impact.description)
                 item.set ('allcommits', impact.commits)
                 item.set ('forks', impact.forks)
                 item.set ('stars', impact.stars)

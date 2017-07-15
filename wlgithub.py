@@ -126,13 +126,13 @@ def run_bigquery (jobs, qstring):
         total_rows = get_total_rows (res)
 
 
-def format_string_literal (text):
+def format_string_literal(text):
     """The Google Python libraries do not seem to provide a function for this, and
     Googling does not yield anything helpful. Hopefully my attempt is not
     broken!
 
     """
-    return '"' + text.encode ('unicode_escape').replace ('"', '\\"').replace ('\'', '\\\'') + '"'
+    return '"' + text.replace('"', '\\"').replace('\'', '\\\'') + '"'
 
 
 def get_repos_with_pushes_from_user (jobs, login):
@@ -176,6 +176,12 @@ WHERE
 
     for r in results:
         name = r['reponame']
+        if '/' not in name:
+            # Too lazy to dig into what's happening here, but there are
+            # activity records where the reponame is just 'omegaplot' instead
+            # of 'pkgw/omegaplot'. As far as I can tell, none of these add any
+            # special information, so let's just ignore them
+            continue
         if name in seen:
             continue
         seen.add (name)
@@ -253,7 +259,7 @@ def get_repo_impact_stats (gh, reponame):
         if first_try is not None:
             return first_try
 
-        for i in range (10):
+        for i in range (20):
             result = func ()
             if result is not None:
                 return result
