@@ -652,10 +652,12 @@ def partition_pubs (pubs):
     groups.all_formal = []
     groups.all_non_refereed = []
     groups.informal = []
+    groups.chapters = []
 
     for pub in pubs:
         refereed = (pub.refereed == 'y')
         refpreprint = (pub.get ('refpreprint', 'n') == 'y')
+        chapter = (pub.get('kind', 'default') == 'book chapter')
         formal = (pub.get ('informal', 'n') == 'n')
         # we assume refereed implies formal.
 
@@ -667,6 +669,8 @@ def partition_pubs (pubs):
             groups.refereed.append (pub)
         elif refpreprint:
             groups.refpreprint.append (pub)
+        elif chapter:
+            groups.chapters.append(pub)
         else:
             groups.all_non_refereed.append (pub)
 
@@ -676,6 +680,7 @@ def partition_pubs (pubs):
                 groups.informal.append (pub)
 
     groups.all_rev = groups.all[::-1]
+    groups.chapters_rev = groups.chapters[::-1]
     groups.refereed_rev = groups.refereed[::-1]
     groups.refpreprint_rev = groups.refpreprint[::-1]
     groups.non_refereed_rev = groups.non_refereed[::-1]
