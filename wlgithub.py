@@ -200,7 +200,7 @@ def get_github_service (authdir):
     return gh
 
 
-def get_repo_commit_stats (gh, reponame):
+def get_repo_commit_stats (gh, reponame, branch=None):
     """Get statistics for the logged-in user's commits in the named repository.
     The `reponame` should look something like "pkgw/bibtools". Returns a Holder.
 
@@ -211,7 +211,12 @@ def get_repo_commit_stats (gh, reponame):
     res = Holder (commits=0, lines=0)
     latest = None
 
-    for c in repo.get_commits (author=gh.get_user ()):
+    if branch is None:
+        sha = None
+    else:
+        sha = repo.get_branch(branch).commit.sha
+
+    for c in repo.get_commits (sha=sha, author=gh.get_user ()):
         res.commits += 1
 
         # I want to count the total lines committed, but this requires

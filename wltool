@@ -380,7 +380,7 @@ that API access to GitHub has been set up."""
             print(name, '...')
             try:
                 #print gh.get_rate_limit ().rate.remaining
-                mycommits = wlgithub.get_repo_commit_stats (gh, name)
+                mycommits = wlgithub.get_repo_commit_stats (gh, name, branch=item.data.get('branch'))
                 item.set ('usercommits', mycommits.commits)
                 if mycommits.latest_date is not None:
                     item.set ('lastusercommit', '%04d/%02d/%02d' % (mycommits.latest_date.year,
