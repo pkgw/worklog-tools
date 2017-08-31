@@ -59,9 +59,9 @@ class Holder(object):
 
 import re, os
 
-sectionre = re.compile(rb'^\[(.*)]\s*$')
-keyre = re.compile(rb'^(\S+)\s*= (.*)$') # leading space chomped later
-escre = re.compile(rb'^(\S+)\s*=\s*"(.*)"\s*$')
+sectionre = re.compile(r'^\[(.*)]\s*$')
+keyre = re.compile(r'^(\S+)\s*= (.*)$') # leading space chomped later
+escre = re.compile(r'^(\S+)\s*=\s*"(.*)"\s*$')
 
 def readStream(stream):
     section = None
@@ -69,24 +69,24 @@ def readStream(stream):
     data = None
 
     for fullline in stream:
-        line = fullline.split(b'#', 1)[0]
+        line = fullline.split('#', 1)[0]
 
         m = sectionre.match(line)
         if m is not None:
             # New section
             if section is not None:
                 if key is not None:
-                    section.setone(key.decode('utf8'), data.strip().decode('utf8'))
+                    section.setone(key, data.strip())
                     key = data = None
                 yield section
 
             section = Holder()
-            section.section = m.group(1).decode('utf8')
+            section.section = m.group(1)
             continue
 
         if len(line.strip()) == 0:
             if key is not None:
-                section.setone(key.decode('utf8'), data.strip().decode('utf8'))
+                section.setone(key, data.strip())
                 key = data = None
             continue
 
@@ -95,10 +95,10 @@ def readStream(stream):
             if section is None:
                 raise Exception('key seen without section!')
             if key is not None:
-                section.setone(key.decode('utf8'), data.strip().decode('utf8'))
+                section.setone(key, data.strip())
             key = m.group(1)
-            data = m.group(2).replace(rb'\"', b'"').replace(rb'\n', b'\n').replace(rb'\\', b'\\')
-            section.setone(key.decode('utf8'), data.decode('utf8'))
+            data = m.group(2).replace(r'\"', '"').replace(r'\n', '\n').replace(r'\\', '\\')
+            section.setone(key, data)
             key = data = None
             continue
 
@@ -107,30 +107,30 @@ def readStream(stream):
             if section is None:
                 raise Exception('key seen without section!')
             if key is not None:
-                section.setone(key.decode('utf8'), data.strip().decode('utf8'))
+                section.setone(key, data.strip())
             key = m.group(1)
             data = m.group(2)
             if not len(data):
-                data = b' '
-            elif data[-1] not in b' \t\r\n':
-                data += b' '
+                data = ' '
+            elif data[-1] not in ' \t\r\n':
+                data += ' '
             continue
 
-        if line[0] in b' \t' and key is not None:
-            data += line.strip() + b' '
+        if line[0] in ' \t' and key is not None:
+            data += line.strip() + ' '
             continue
 
         raise Exception('unparsable line: ' + line[:-1])
 
     if section is not None:
         if key is not None:
-            section.setone(key.decode('utf8'), data.strip().decode('utf8'))
+            section.setone(key, data.strip())
         yield section
 
 
 def read(stream_or_path):
     if isinstance(stream_or_path, string_types):
-        return readStream(io.open(stream_or_path, 'rb'))
+        return readStream(io.open(stream_or_path, 'rt'))
     return readStream(stream_or_path)
 
 
@@ -151,7 +151,7 @@ def writeStream(stream, items):
         for k, v in sorted(i.iteritems()):
             if k == 'section':
                 continue
-            print(k, '=', str(v).encode('utf-8'), file=stream)
+            print(k, '=', str(v), file=stream)
 
 
 def write(stream_or_path, items):
@@ -177,7 +177,7 @@ class FileChunk(object):
 
 
     def set(self, name, value):
-        newline = ((u'%s = %s' % (name, value)) + os.linesep).encode('utf8')
+        newline = (u'%s = %s' % (name, value)) + os.linesep
         first = True
 
         for i in range(len(self._lines)):
@@ -217,14 +217,14 @@ def mutateStream(instream, outstream):
     misclines = []
 
     for fullline in instream:
-        line = fullline.split(b'#', 1)[0]
+        line = fullline.split('#', 1)[0]
 
         m = sectionre.match(line)
         if m is not None:
             # New chunk
             if chunk is not None:
                 if key is not None:
-                    chunk.data.setone(key.decode('utf8'), data.strip().decode('utf8'))
+                    chunk.data.setone(key, data.strip())
                     key = data = None
                 yield chunk
                 chunk.emit(outstream)
@@ -233,13 +233,13 @@ def mutateStream(instream, outstream):
             for miscline in misclines:
                 chunk._addLine(miscline, None)
             misclines = []
-            chunk.data.section = m.group(1).decode('utf8')
+            chunk.data.section = m.group(1)
             chunk._addLine(fullline, None)
             continue
 
         if len(line.strip()) == 0:
             if key is not None:
-                chunk.data.setone(key.decode('utf8'), data.strip().decode('utf8'))
+                chunk.data.setone(key, data.strip())
                 key = data = None
             if chunk is not None:
                 chunk._addLine(fullline, None)
@@ -252,10 +252,10 @@ def mutateStream(instream, outstream):
             if chunk is None:
                 raise Exception('key seen without section!')
             if key is not None:
-                chunk.data.setone(key.decode('utf8'), data.strip().decode('utf8'))
+                chunk.data.setone(key, data.strip())
             key = m.group(1)
-            data = m.group(2).replace(rb'\"', b'"').replace(rb'\n', b'\n').replace(rb'\\', b'\\')
-            chunk.data.setone(key.decode('utf8'), data.decode('utf8'))
+            data = m.group(2).replace(r'\"', '"').replace(r'\n', '\n').replace(r'\\', '\\')
+            chunk.data.setone(key, data)
             chunk._addLine(fullline, key)
             key = data = None
             continue
@@ -265,16 +265,16 @@ def mutateStream(instream, outstream):
             if chunk is None:
                 raise Exception('key seen without section!')
             if key is not None:
-                chunk.data.setone(key.decode('utf8'), data.strip().decode('utf8'))
+                chunk.data.setone(key, data.strip())
             key = m.group(1)
             data = m.group(2)
-            if not data.decode('utf8')[-1].isspace():
-                data += b' '
+            if not len(data) or not data[-1].isspace():
+                data += ' '
             chunk._addLine(fullline, key)
             continue
 
-        if line.decode('utf8')[0].isspace() and key is not None:
-            data += line.strip() + b' '
+        if line[0].isspace() and key is not None:
+            data += line.strip() + ' '
             chunk._addLine(fullline, key)
             continue
 
@@ -282,7 +282,7 @@ def mutateStream(instream, outstream):
 
     if chunk is not None:
         if key is not None:
-            chunk.data.setone(key.decode('utf8'), data.strip().decode('utf8'))
+            chunk.data.setone(key, data.strip())
         yield chunk
         chunk.emit(outstream)
 
@@ -307,9 +307,9 @@ def mutateInPlace(inpath):
 
     tmppath = inpath + '.new'
 
-    with io.open(inpath, 'rb') as instream:
+    with io.open(inpath, 'rt') as instream:
         try:
-            with io.open(tmppath, 'wb') as outstream:
+            with io.open(tmppath, 'wt') as outstream:
                 for item in mutateStream(instream, outstream):
                     yield item
                 rename(tmppath, inpath)
