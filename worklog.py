@@ -890,6 +890,23 @@ def cmd_talloc_list (context):
         yield context.cur_formatter (info)
 
 
+def cmd_split_talloc_list (context, *split_template):
+    if context.cur_formatter is None:
+        die ('cannot use SPLIT_TALLOCLIST command before using FORMAT')
+
+    split_template = ' '.join(split_template)
+    alloc_info = list(context.time_allocs)
+    n = len(alloc_info)
+
+    for info in alloc_info[:n//2+1]:
+        yield context.cur_formatter(info)
+
+    yield split_template
+
+    for info in alloc_info[n//2+1:]:
+        yield context.cur_formatter(info)
+
+
 def _rev_misc_list (context, sections, gate):
     if context.cur_formatter is None:
         die ('cannot use RMISCLIST* command before using FORMAT')
@@ -962,6 +979,7 @@ def setup_processing (render, datadir):
     commands['MYABBREVNAME'] = cmd_my_abbrev_name
     commands['PUBLIST'] = cmd_pub_list
     commands['TALLOCLIST'] = cmd_talloc_list
+    commands['SPLIT_TALLOCLIST'] = cmd_split_talloc_list
     commands['RMISCLIST'] = cmd_rev_misc_list
     commands['RMISCLIST_IF'] = cmd_rev_misc_list_if
     commands['RMISCLIST_IF_NOT'] = cmd_rev_misc_list_if_not

@@ -244,7 +244,8 @@ total awarded time by each facility. The relevant fields are:
 
 Proposals are grouped by facility, and the total amount awarded in each
 proposal where both `mepi` and `accepted` are `y` is computed. The totals may
-then be inserted into the template using [TALLOCLIST](#talloclist).
+then be inserted into the template using [TALLOCLIST](#talloclist) or
+[SPLIT_TALLOCLIST](#split-talloclist).
 
 ### Software repositories list
 
@@ -665,6 +666,25 @@ FORMAT |facil| & |total| & |unit| \cr
 \section*{Total Allocations as PI}
 \begin{tabular}{lrl}
 TALLOCLIST
+\end{tabular}
+```
+
+### SPLIT_TALLOCLIST {text...}
+
+This is a giant hack to typeset time allocation lists when space is at a
+premium. It is just like [TALLOCLIST](#talloclist), but you can specify
+arbitrary raw text that will be inserted halfway through the list of
+allocations. This can let you break the list of allocations into two
+equal-sized tables, which can then by typeset side-by-side.
+
+Example
+
+```TeX
+FORMAT |facil| & |total| & |unit| \cr
+
+\section*{Total Allocations as PI}
+\begin{tabular}{lrl}
+SPLIT_TALLOCLIST \end{tabular} \begin{tabular}{lrl}
 \end{tabular}
 ```
 
