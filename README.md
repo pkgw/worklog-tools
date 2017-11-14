@@ -652,13 +652,30 @@ each facility with a successful proposal as PI.
 
 The fields accessible to the template are:
 
-* `facil` — the facility name
+* `facil` — the facility name, but see below.
 * `total` — the total of the allocations for that facility
 * `unit` — the unit string specified in the proposals for the facility
 
-The records are sorted alphabetically by `facil`.
+The records are sorted alphabetically by `facil`, with the following
+exception. All `facil` names starting with the text `SUMMARY:` are sorted
+*after* the other facilities, and are rendered in italics with the `SUMMARY:`
+tag stripped off. This feature is intended for money awards, which one
+typically wants to emphasize. A relevant worklog entry might look like:
 
-Example
+```
+[prop]
+title = My Awesome Science
+date = 2017/11
+pi = P K G Williams
+mepi = y
+facil = Very Large Array
+request = 100 hr
+request2 = 100 ks Chandra
+accepted = y
+award3 = 100000 USD SUMMARY:Support funding
+```
+
+Example of the template:
 
 ```TeX
 FORMAT |facil| & |total| & |unit| \cr

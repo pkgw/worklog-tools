@@ -745,13 +745,29 @@ def compute_time_allocations(props):
                          facil, u0, units)
                 allocs[facil] = (q0 + quantity, u0)
 
-    # For some allocations we have fractional precision (e.g., right now I've
-    # been awareded 244.64 ks on Chandra), but the float formatting is
-    # annoying to get to work universally, so just round everything off.
+    # Implement the hack for putting support funding last and in italics. For
+    # some allocations we have fractional precision (e.g., right now I've been
+    # awarded 244.64 ks on Chandra), but the float formatting is annoying to
+    # get to work universally, so just round everything off.
 
-    return sorted((Holder(facil=k, total=('%.0f' % v[0]), unit=v[1])
-                   for (k, v) in allocs.items()),
-                  key=lambda h: h.facil)
+    def process(facil_text, info):
+        quantity, unit = info
+        is_summary = facil_text.startswith('SUMMARY:')
+
+        if is_summary:
+            facil = MupItalics(facil_text[8:])
+        else:
+            facil = facil_text
+
+        return Holder(
+            is_summary = is_summary,
+            facil = facil,
+            total = '%.0f' % quantity,
+            unit = unit,
+        )
+
+    return sorted((process(k, v) for (k, v) in allocs.items()),
+                  key=lambda h: (h.is_summary, h.facil))
 
 
 # Utilities for dealing with public code repositories
