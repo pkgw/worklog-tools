@@ -914,12 +914,12 @@ def cmd_split_talloc_list(context, *split_template):
     alloc_info = list(context.time_allocs)
     n = len(alloc_info)
 
-    for info in alloc_info[:n//2+1]:
+    for info in alloc_info[:(n+1)//2]:
         yield context.cur_formatter(info)
 
     yield split_template
 
-    for info in alloc_info[n//2+1:]:
+    for info in alloc_info[(n+1)//2:]:
         yield context.cur_formatter(info)
 
 
