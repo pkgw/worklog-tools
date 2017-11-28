@@ -205,6 +205,7 @@ def get_repo_commit_stats (gh, reponame, branch=None):
     The `reponame` should look something like "pkgw/bibtools". Returns a Holder.
 
     """
+    from github import GithubObject
     from inifile import Holder
 
     repo = gh.get_repo (reponame)
@@ -212,7 +213,7 @@ def get_repo_commit_stats (gh, reponame, branch=None):
     latest = None
 
     if branch is None:
-        sha = None
+        sha = GithubObject.NotSet
     else:
         sha = repo.get_branch(branch).commit.sha
 
