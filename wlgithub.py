@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # -*- mode: python; coding: utf-8 -*-
-# Copyright 2015 Peter Williams <peter@newton.cx>
+# Copyright 2015-2017 Peter Williams <peter@newton.cx>
 
 """Worklog-related tools for accessing GitHub history, since that seems like
 the best available option for capturing my open-source efforts.
@@ -22,7 +22,7 @@ BQ_PROJECT_FILE = 'bigquery_projectid.dat'
 GH_CREDENTIALS_FILE = 'github_credentials.dat'
 
 
-def read_secret_line (path):
+def read_secret_line(path):
     """Read a line from a file containing sensitive information. We refuse to
     proceed if the file's permissions are too permissive. This is of course
     only a very primitive form of security.
@@ -30,15 +30,15 @@ def read_secret_line (path):
     """
     import os, stat
 
-    with open (path, 'rt') as f:
-        mode = os.fstat (f.fileno ()).st_mode
+    with open(path, 'rt') as f:
+        mode = os.fstat(f.fileno()).st_mode
         if mode & stat.S_IRWXG or mode & stat.S_IRWXO:
-            raise Exception ('refusing credentials file %r with group or world access'
-                             % path)
-        return f.readline ().strip ()
+            raise Exception('refusing credentials file %r with group or world access'
+                            % path)
+        return f.readline().strip()
 
 
-def get_bigquery_jobs_service (authdir, args):
+def get_bigquery_jobs_service(authdir, args):
     """`args` should be a list of command-line arguments *not* containing the
     traditional `argv[0]` value.
 
@@ -49,28 +49,28 @@ def get_bigquery_jobs_service (authdir, args):
     from oauth2client.tools import argparser, run_flow
     from googleapiclient.discovery import build
 
-    storage = Storage (os.path.join (authdir, BQ_CREDENTIALS_FILE))
-    credentials = storage.get ()
-    projid = read_secret_line (os.path.join (authdir, BQ_PROJECT_FILE))
+    storage = Storage(os.path.join(authdir, BQ_CREDENTIALS_FILE))
+    credentials = storage.get()
+    projid = read_secret_line(os.path.join(authdir, BQ_PROJECT_FILE))
 
     if credentials is None or credentials.invalid:
-        flow = flow_from_clientsecrets (os.path.join (authdir, BQ_SECRETS_FILE),
-                                        scope='https://www.googleapis.com/auth/bigquery')
-        parser = argparse.ArgumentParser (description='bigquery auth', parents=[argparser])
-        flags = parser.parse_args (args)
-        credentials = run_flow (flow, storage, flags)
+        flow = flow_from_clientsecrets(os.path.join(authdir, BQ_SECRETS_FILE),
+                                       scope='https://www.googleapis.com/auth/bigquery')
+        parser = argparse.ArgumentParser(description='bigquery auth', parents=[argparser])
+        flags = parser.parse_args(args)
+        credentials = run_flow(flow, storage, flags)
 
-    http = httplib2.Http ()
-    http = credentials.authorize (http)
-    bq = build ('bigquery', 'v2', http=http)
+    http = httplib2.Http()
+    http = credentials.authorize(http)
+    bq = build('bigquery', 'v2', http=http)
 
     # Hackity hack to not have to drag a projectId around.
-    jobs = bq.jobs ()
+    jobs = bq.jobs()
     jobs.my_project_id = projid
     return jobs
 
 
-def run_bigquery (jobs, qstring):
+def run_bigquery(jobs, qstring):
     """Execute a BigQuery query using a `jobs` Resource object. Returns a
     generator that yields a dict() of data corresponding to each returned row.
     If your query is going to generate 10 million rows, it should just keep on
@@ -81,29 +81,29 @@ def run_bigquery (jobs, qstring):
     from sys import maxsize
 
     body = {'query': qstring}
-    req = jobs.query (projectId=jobs.my_project_id, body=body)
-    qres = req.execute ()
+    req = jobs.query(projectId=jobs.my_project_id, body=body)
+    qres = req.execute()
     rows_seen = 0
 
-    def get_total_rows (result):
-        tr = result.get ('totalRows')
-        return maxsize if tr is None else int (tr)
+    def get_total_rows(result):
+        tr = result.get('totalRows')
+        return maxsize if tr is None else int(tr)
 
     colnames = None
     res = qres
-    total_rows = get_total_rows (res)
+    total_rows = get_total_rows(res)
 
     while rows_seen < total_rows or not res['jobComplete']:
-        req = jobs.getQueryResults (
+        req = jobs.getQueryResults(
             projectId=qres['jobReference']['projectId'],
             jobId=qres['jobReference']['jobId'],
-            pageToken=res.get ('pageToken'),
+            pageToken=res.get('pageToken'),
             startIndex=rows_seen
         )
-        res = req.execute ()
+        res = req.execute()
 
         if 'rows' not in res:
-            print ('[no rows, looping ...]')
+            print('[no rows, looping ...]')
             continue
 
         if colnames is None:
@@ -112,18 +112,18 @@ def run_bigquery (jobs, qstring):
             except KeyError as e:
                 # grrr sometimes this happens still
                 from pprint import pprint
-                print ('XXX bizzah KeyError:')
-                pprint (e)
-                print ('XXX result:')
-                pprint (res)
-                print ('XXX raising:')
+                print('XXX bizzah KeyError:')
+                pprint(e)
+                print('XXX result:')
+                pprint(res)
+                print('XXX raising:')
                 raise
 
         for rowdata in res['rows']:
-            yield dict (zip (colnames, (cell['v'] for cell in rowdata['f'])))
+            yield dict(zip(colnames, (cell['v'] for cell in rowdata['f'])))
 
-        rows_seen += len (res['rows'])
-        total_rows = get_total_rows (res)
+        rows_seen += len(res['rows'])
+        total_rows = get_total_rows(res)
 
 
 def format_string_literal(text):
@@ -135,7 +135,7 @@ def format_string_literal(text):
     return '"' + text.replace('"', '\\"').replace('\'', '\\\'') + '"'
 
 
-def get_repos_with_pushes_from_user (jobs, login):
+def get_repos_with_pushes_from_user(jobs, login):
     """Returns a set of names of repository (of the format "owner/reponame") that
     a user has pushed to since 2011.
 
@@ -149,7 +149,7 @@ def get_repos_with_pushes_from_user (jobs, login):
     """
     from itertools import chain
     first_year = 2011 # start of githubarchive data set.
-    cur_year = time.localtime ()[0]
+    cur_year = time.localtime()[0]
 
     year_ts_template = "TIMESTAMP('{0}-01-01')"
     query_template = '''
@@ -163,16 +163,16 @@ WHERE
 '''
 
     queries = []
-    for year in range (first_year, cur_year):
-        y1 = year_ts_template.format (year)
-        y2 = year_ts_template.format (year+1)
-        queries.append (query_template.format (y1, y2, format_string_literal (login)))
+    for year in range(first_year, cur_year):
+        y1 = year_ts_template.format(year)
+        y2 = year_ts_template.format(year+1)
+        queries.append(query_template.format(y1, y2, format_string_literal(login)))
 
-    y = year_ts_template.format (cur_year)
-    queries.append (query_template.format (y, 'CURRENT_TIMESTAMP()', format_string_literal (login)))
+    y = year_ts_template.format(cur_year)
+    queries.append(query_template.format(y, 'CURRENT_TIMESTAMP()', format_string_literal(login)))
 
-    seen = set ()
-    results = chain (*[run_bigquery (jobs, q) for q in queries])
+    seen = set()
+    results = chain(*[run_bigquery(jobs, q) for q in queries])
 
     for r in results:
         name = r['reponame']
@@ -184,23 +184,23 @@ WHERE
             continue
         if name in seen:
             continue
-        seen.add (name)
+        seen.add(name)
         yield name
 
 
-def get_github_service (authdir):
+def get_github_service(authdir):
     """Create and return a PyGithub (v3) `Github` object. Much simpler to set up
     than BigQuery since we just assume a personal access token has been set
     up.
 
     """
     from github import Github
-    token = read_secret_line (os.path.join (authdir, GH_CREDENTIALS_FILE))
-    gh = Github (token, per_page=99) # only up to 100/page is allowed
+    token = read_secret_line(os.path.join(authdir, GH_CREDENTIALS_FILE))
+    gh = Github(token, per_page=99) # only up to 100/page is allowed
     return gh
 
 
-def get_repo_commit_stats (gh, reponame, branch=None):
+def get_repo_commit_stats(gh, reponame, branch=None):
     """Get statistics for the logged-in user's commits in the named repository.
     The `reponame` should look something like "pkgw/bibtools". Returns a Holder.
 
@@ -208,8 +208,8 @@ def get_repo_commit_stats (gh, reponame, branch=None):
     from github import GithubObject
     from inifile import Holder
 
-    repo = gh.get_repo (reponame)
-    res = Holder (commits=0, lines=0)
+    repo = gh.get_repo(reponame)
+    res = Holder(commits=0, lines=0)
     latest = None
 
     if branch is None:
@@ -217,7 +217,7 @@ def get_repo_commit_stats (gh, reponame, branch=None):
     else:
         sha = repo.get_branch(branch).commit.sha
 
-    for c in repo.get_commits (sha=sha, author=gh.get_user ()):
+    for c in repo.get_commits(sha=sha, author=gh.get_user()):
         res.commits += 1
 
         # I want to count the total lines committed, but this requires
@@ -229,13 +229,13 @@ def get_repo_commit_stats (gh, reponame, branch=None):
         if latest is None:
             latest = c.commit.committer.date
         else:
-            latest = max (latest, c.commit.committer.date)
+            latest = max(latest, c.commit.committer.date)
 
     res.latest_date = latest
     return res
 
 
-def github_list_size (paginated_list):
+def github_list_size(paginated_list):
     # TODO: better way to do this, without fetching all of the data?
     n = 0
     for item in paginated_list:
@@ -243,7 +243,7 @@ def github_list_size (paginated_list):
     return n
 
 
-def get_repo_impact_stats (gh, reponame):
+def get_repo_impact_stats(gh, reponame):
     """Get statistics that try to get at the impact/popularity of a particular
     repository. The `reponame` should look something like "pkgw/bibtools".
     Returns a Holder.
@@ -252,8 +252,8 @@ def get_repo_impact_stats (gh, reponame):
     from inifile import Holder
     from time import sleep
 
-    repo = gh.get_repo (reponame)
-    res = Holder ()
+    repo = gh.get_repo(reponame)
+    res = Holder()
     res.description = repo.description # OK this isn't impact but it's handy
 
     # It can take GitHub a little while to compute the 'stats' items, in which
@@ -261,21 +261,21 @@ def get_repo_impact_stats (gh, reponame):
     # requests first, then make other ones; the hope is that by the time we
     # come back and retry, the stats will have been computed.
 
-    def retry (func, first_try):
+    def retry(func, first_try):
         if first_try is not None:
             return first_try
 
-        for i in range (20):
-            result = func ()
+        for i in range(20):
+            result = func()
             if result is not None:
                 return result
-            sleep (3)
-        raise Exception ('function %r took too long' % func)
+            sleep(3)
+        raise Exception('function %r took too long' % func)
 
-    contrib = repo.get_stats_contributors ()
+    contrib = repo.get_stats_contributors()
 
-    res.commits = github_list_size (repo.get_commits ()) # this counts commits on main branch
-    res.forks = github_list_size (repo.get_forks ())
-    res.stars = github_list_size (repo.get_stargazers ())
-    res.contributors = github_list_size (retry (repo.get_stats_contributors, contrib))
+    res.commits = github_list_size(repo.get_commits()) # this counts commits on main branch
+    res.forks = github_list_size(repo.get_forks())
+    res.stars = github_list_size(repo.get_stargazers())
+    res.contributors = github_list_size(retry(repo.get_stats_contributors, contrib))
     return res
