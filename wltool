@@ -195,7 +195,7 @@ The output will be formatted for inclusion in a LaTeX document.
     # Print, sorted by last name, in a format just ripe for filling in.
 
     for rest, surname in sorted(names, key=lambda t: t[1]):
-        print(unicode_to_latex('%s %s (),' % (rest, surname)))
+        print('%s, %s' % (surname, rest))
 
 
 def _cli_render(argv):
