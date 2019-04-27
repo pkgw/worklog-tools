@@ -287,7 +287,7 @@ def prepare_unicode_to_latex():
         ("\u005F", "\\_"),
         ("\u0060", "\\textasciigrave "),
         ("\u007B", "\\lbrace "),
-        ("\u007C", "\\vert "),
+        ("\u007C", "\\ensuremath{\\vert}"),
         ("\u007D", "\\rbrace "),
         ("\u007E", "\\textasciitilde "),
         ("\u00A1", "\\textexclamdown "),

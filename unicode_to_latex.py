@@ -39,7 +39,7 @@ unicode_to_latex_table_base = {
     u"\u005F": r"\_",
     u"\u0060": r"\textasciigrave{}",
     u"\u007B": r"\{",
-    u"\u007C": r"\vert{}",
+    u"\u007C": r"\ensuremath{\vert{}}",
     u"\u007D": r"\}",
     u"\u007E": r"\textasciitilde{}",
     u"\u00A0": r"~",
