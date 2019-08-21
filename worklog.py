@@ -504,7 +504,13 @@ def cite_info(oitem, context):
     # Canonicalized authors with bolding of self and underlining of advisees.
     cauths = [canonicalize_name(a) for a in oitem.authors.split(';')]
 
-    myidx = int(oitem.mypos) - 1
+    mypos = int(oitem.mypos)
+    if mypos < 0:
+        myidx = len(cauths) + mypos
+    elif mypos == 0:
+        die('illegal mypos value %r' % (oitem.mypos, ))
+    else:
+        myidx = mypos - 1
     cauths[myidx] = MupBold(cauths[myidx])
 
     advposlist = oitem.get('advpos', '')

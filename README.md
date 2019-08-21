@@ -322,7 +322,8 @@ certain fields. Some of the key ones are:
   should have the words separated by *underscores* — this is the easiest
   way to have the software pull out surnames automatically. Initials are OK.
 * `mypos` — your numerical position in the author list, with 1 (sensibly)
-  being first.
+  being first. Negative numbers are treated like Python list indices: -1
+  means that you are the last author, -2 means second-to-last, and so on.
 * `advpos` — a comma-separated list of positions in the author list, again
   with 1 being first. The corresponding author names will be underlined in
   the full author list. The intention is to highlight the names of
