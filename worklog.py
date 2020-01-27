@@ -1013,10 +1013,23 @@ def setup_processing(render, datadir):
 
 # ADS citation counts
 
-# this custom format returns exactly the ADS citation count
-_ads_url_tmpl =(r'http://adsabs.harvard.edu/cgi-bin/nph-abs_connect?'
-                r'bibcode=%(bibcode)s&data_type=Custom&format=%%25c&nocookieset=1')
+ADS_API_TOKEN = None
 
+def _ensure_ads_api_token():
+    global ADS_API_TOKEN
+    from errno import ENOENT
+
+    if ADS_API_TOKEN is not None:
+        return
+
+    try:
+        with open('ads-token.secret', 'rt') as f:
+            ADS_API_TOKEN = f.readline().strip()
+    except IOError as e:
+        if e.errno == ENOENT:
+            die('this operation requires an ADS API token; place a file '
+                'named "ads-token.secret" in the current directory')
+        raise
 
 class ADSCountError(Exception):
     def __init__(self, fmt, *args):
@@ -1024,38 +1037,34 @@ class ADSCountError(Exception):
 
 
 def get_ads_cite_count(bibcode):
-    try:
-        from http import client
-        from urllib.request import urlopen
-        from urllib.parse import quote
-        from urllib.error import URLError
-    except ImportError:
-        import httplib as client
-        from urllib2 import urlopen, quote, URLError
+    import json
+    import requests
 
-    url = _ads_url_tmpl % {'bibcode': quote(bibcode)}
-    lastnonempty = None
+    _ensure_ads_api_token()
+    resp = requests.post(
+        'https://api.adsabs.harvard.edu/v1/metrics',
+        headers = {'Authorization': 'Bearer ' + ADS_API_TOKEN},
+        json = {
+            'bibcodes': [bibcode],
+            'types': ['citations']
+        },
+    )
 
-    try:
-        for line in urlopen(url):
-            line = line.strip()
-            if len(line):
-                lastnonempty = line
-    except client.BadStatusLine as e:
-        raise ADSCountError('received bad HTTP status: %r', e)
-    except URLError as e:
-        raise ADSCountError('%s', e)
+    # Note: we can't pass `stream=True` to requests.post() and then use
+    # `json.load(resp.raw)` here, because resp.raw is not decoded in any way —
+    # if the output is gzip-encoded, we get the gzip. Based on
+    # https://github.com/psf/requests/issues/465 , it looks lke this is just
+    # How It Is.
+    structured = json.loads(resp.text)
 
-    if lastnonempty is None:
-        raise ADSCountError('got only empty lines')
+    if 'Error' in structured:
+        raise ADSCountError(structured.get('Error Info', 'unknown ADS API error'))
 
-    if lastnonempty.startswith(b'Retrieved 0 abstracts'):
-        raise ADSCountError('no such bibcode')
+    d = structured.get('citation stats refereed', {})
+    count = d.get('total number of refereed citations')
 
-    try:
-        count = int(lastnonempty)
-    except Exception:
-        raise ADSCountError('got unexpected final line %r', lastnonempty)
+    if count is None:
+        raise ADSCountError('ADS Metrics API response does not include expected citation metric')
 
     return count
 

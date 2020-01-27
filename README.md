@@ -521,11 +521,19 @@ $
 Updates citation counts for publications from [NASA ADS].
 
 For each record in the log files with a `bibcode` field, the script connects
-to the ADS website and fetches the number of citations. The log files are
+to the ADS API and fetches the number of refereed citations. The log files are
 modified in-place to have the citation counts inserted into each record in a
 field called `adscites`. The `adscites` field records the date that citation
 counts were last checked, and the script won’t update check counts more
 frequently than once a week.
+
+In order for this command to work, you must sign up for an ADS account and
+[request an ADS API token](https://github.com/adsabs/adsabs-dev-api#access).
+Create a plain text file named `ads-token.secret` in the directory containing
+your `.txt` files and paste your API token into it. This token is a secret, so
+you should make sure not to track it with any version control system that you
+may be using. If on a multi-user machine, you should make sure that the file
+is not readable by other users.
 
 As the updates are conducted, the script will print out each bibcode and the
 change in the number of citations it has received. Records will be annotated
