@@ -570,7 +570,7 @@ def cite_info(oitem, context):
     else:
         aitem.lcite = MupLink(url, aitem.cite)
 
-    # Other links for the web pub list
+    # Other links for the web pub list, individually and as an <ul>
     try:
         from urllib.parse import quote as urlquote
     except ImportError:
@@ -580,22 +580,28 @@ def cite_info(oitem, context):
     aitem.preprint_link = u''
     aitem.official_link = u''
     aitem.other_link = u''
+    link_items = []
 
     if oitem.has('bibcode'):
         aitem.abstract_link = MupLink('http://adsabs.harvard.edu/abs/' + urlquote(oitem.bibcode),
                                       'abstract')
+        link_items.append(aitem.abstract_link)
 
     if oitem.has('arxiv'):
         aitem.preprint_link = MupLink('http://arxiv.org/abs/' + urlquote(oitem.arxiv),
                                       'preprint')
+        link_items.append(aitem.preprint_link)
 
     if oitem.has('doi'):
         aitem.official_link = MupLink('http://dx.doi.org/' + urlquote(oitem.doi),
                                       'official')
+        link_items.append(aitem.official_link)
 
     if oitem.has('url') and not oitem.has('doi'):
         aitem.other_link = MupLink(oitem.url, oitem.kind)
+        link_items.append(aitem.other_link)
 
+    aitem.links_list = MupList(False, link_items)
     return aitem
 
 

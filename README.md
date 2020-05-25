@@ -372,6 +372,9 @@ The `cite_info` function uses the above information to create the following fiel
 * `lcite` — a copy of `cite`, but with markup to make it a hyperlink to an
   appropriate URL for the publication, based on `arxiv`, `bibcode`, `doi`, or
   `url`.
+* `links_list` — an unordered list containing all the links for this
+  publication: some subset of `abstract_link`, `official_link`, `other_link`, or
+  `preprint_link`, depending on which of those are defined.
 * `month` — the numerical month of publication
 * `official_link` — a hyperlink reading “official” that leads to the DOI
   page for the publication, if `doi` is defined.
