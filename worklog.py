@@ -1106,7 +1106,9 @@ def get_ads_cite_count(bibcode):
     if "Error" in structured:
         raise ADSCountError(structured.get("Error Info", "unknown ADS API error"))
 
-    d = structured.get("citation stats refereed", {})
+    # NB, the "citation stats refereed" structure is all zeros for items that
+    # are not themselves refereed.
+    d = structured.get("citation stats", {})
     count = d.get("total number of refereed citations")
 
     if count is None:
