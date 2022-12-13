@@ -16,10 +16,10 @@ import json, os.path, time
 #   googleapiclient.errors.HttpError
 #   oauth2client.client.AccessTokenRefreshError
 
-BQ_SECRETS_FILE = 'client_secrets.json'
-BQ_CREDENTIALS_FILE = 'bigquery_credentials.dat'
-BQ_PROJECT_FILE = 'bigquery_projectid.dat'
-GH_CREDENTIALS_FILE = 'github_credentials.dat'
+BQ_SECRETS_FILE = "client_secrets.json"
+BQ_CREDENTIALS_FILE = "bigquery_credentials.dat"
+BQ_PROJECT_FILE = "bigquery_projectid.dat"
+GH_CREDENTIALS_FILE = "github_credentials.dat"
 
 
 def read_secret_line(path):
@@ -30,11 +30,12 @@ def read_secret_line(path):
     """
     import os, stat
 
-    with open(path, 'rt') as f:
+    with open(path, "rt") as f:
         mode = os.fstat(f.fileno()).st_mode
         if mode & stat.S_IRWXG or mode & stat.S_IRWXO:
-            raise Exception('refusing credentials file %r with group or world access'
-                            % path)
+            raise Exception(
+                "refusing credentials file %r with group or world access" % path
+            )
         return f.readline().strip()
 
 
@@ -54,15 +55,19 @@ def get_bigquery_jobs_service(authdir, args):
     projid = read_secret_line(os.path.join(authdir, BQ_PROJECT_FILE))
 
     if credentials is None or credentials.invalid:
-        flow = flow_from_clientsecrets(os.path.join(authdir, BQ_SECRETS_FILE),
-                                       scope='https://www.googleapis.com/auth/bigquery')
-        parser = argparse.ArgumentParser(description='bigquery auth', parents=[argparser])
+        flow = flow_from_clientsecrets(
+            os.path.join(authdir, BQ_SECRETS_FILE),
+            scope="https://www.googleapis.com/auth/bigquery",
+        )
+        parser = argparse.ArgumentParser(
+            description="bigquery auth", parents=[argparser]
+        )
         flags = parser.parse_args(args)
         credentials = run_flow(flow, storage, flags)
 
     http = httplib2.Http()
     http = credentials.authorize(http)
-    bq = build('bigquery', 'v2', http=http)
+    bq = build("bigquery", "v2", http=http)
 
     # Hackity hack to not have to drag a projectId around.
     jobs = bq.jobs()
@@ -80,49 +85,50 @@ def run_bigquery(jobs, qstring):
 
     from sys import maxsize
 
-    body = {'query': qstring}
+    body = {"query": qstring}
     req = jobs.query(projectId=jobs.my_project_id, body=body)
     qres = req.execute()
     rows_seen = 0
 
     def get_total_rows(result):
-        tr = result.get('totalRows')
+        tr = result.get("totalRows")
         return maxsize if tr is None else int(tr)
 
     colnames = None
     res = qres
     total_rows = get_total_rows(res)
 
-    while rows_seen < total_rows or not res['jobComplete']:
+    while rows_seen < total_rows or not res["jobComplete"]:
         req = jobs.getQueryResults(
-            projectId=qres['jobReference']['projectId'],
-            jobId=qres['jobReference']['jobId'],
-            pageToken=res.get('pageToken'),
-            startIndex=rows_seen
+            projectId=qres["jobReference"]["projectId"],
+            jobId=qres["jobReference"]["jobId"],
+            pageToken=res.get("pageToken"),
+            startIndex=rows_seen,
         )
         res = req.execute()
 
-        if 'rows' not in res:
-            print('[no rows, looping ...]')
+        if "rows" not in res:
+            print("[no rows, looping ...]")
             continue
 
         if colnames is None:
             try:
-                colnames = [s['name'] for s in res['schema']['fields']]
+                colnames = [s["name"] for s in res["schema"]["fields"]]
             except KeyError as e:
                 # grrr sometimes this happens still
                 from pprint import pprint
-                print('XXX bizzah KeyError:')
+
+                print("XXX bizzah KeyError:")
                 pprint(e)
-                print('XXX result:')
+                print("XXX result:")
                 pprint(res)
-                print('XXX raising:')
+                print("XXX raising:")
                 raise
 
-        for rowdata in res['rows']:
-            yield dict(zip(colnames, (cell['v'] for cell in rowdata['f'])))
+        for rowdata in res["rows"]:
+            yield dict(zip(colnames, (cell["v"] for cell in rowdata["f"])))
 
-        rows_seen += len(res['rows'])
+        rows_seen += len(res["rows"])
         total_rows = get_total_rows(res)
 
 
@@ -132,7 +138,7 @@ def format_string_literal(text):
     broken!
 
     """
-    return '"' + text.replace('"', '\\"').replace('\'', '\\\'') + '"'
+    return '"' + text.replace('"', '\\"').replace("'", "\\'") + '"'
 
 
 def get_repos_with_pushes_from_user(jobs, login):
@@ -148,11 +154,12 @@ def get_repos_with_pushes_from_user(jobs, login):
 
     """
     from itertools import chain
-    first_year = 2011 # start of githubarchive data set.
+
+    first_year = 2011  # start of githubarchive data set.
     cur_year = time.localtime()[0]
 
     year_ts_template = "TIMESTAMP('{0}-01-01')"
-    query_template = '''
+    query_template = """
 SELECT
   UNIQUE(repo.name) AS reponame
 FROM
@@ -160,23 +167,25 @@ FROM
 WHERE
   actor.login == {2} AND
   type == "PushEvent"
-'''
+"""
 
     queries = []
     for year in range(first_year, cur_year):
         y1 = year_ts_template.format(year)
-        y2 = year_ts_template.format(year+1)
+        y2 = year_ts_template.format(year + 1)
         queries.append(query_template.format(y1, y2, format_string_literal(login)))
 
     y = year_ts_template.format(cur_year)
-    queries.append(query_template.format(y, 'CURRENT_TIMESTAMP()', format_string_literal(login)))
+    queries.append(
+        query_template.format(y, "CURRENT_TIMESTAMP()", format_string_literal(login))
+    )
 
     seen = set()
     results = chain(*[run_bigquery(jobs, q) for q in queries])
 
     for r in results:
-        name = r['reponame']
-        if '/' not in name:
+        name = r["reponame"]
+        if "/" not in name:
             # Too lazy to dig into what's happening here, but there are
             # activity records where the reponame is just 'omegaplot' instead
             # of 'pkgw/omegaplot'. As far as I can tell, none of these add any
@@ -195,8 +204,9 @@ def get_github_service(authdir):
 
     """
     from github import Github
+
     token = read_secret_line(os.path.join(authdir, GH_CREDENTIALS_FILE))
-    gh = Github(token, per_page=99) # only up to 100/page is allowed
+    gh = Github(token, per_page=99)  # only up to 100/page is allowed
     return gh
 
 
@@ -254,7 +264,7 @@ def get_repo_impact_stats(gh, reponame):
 
     repo = gh.get_repo(reponame)
     res = Holder()
-    res.description = repo.description # OK this isn't impact but it's handy
+    res.description = repo.description  # OK this isn't impact but it's handy
 
     # It can take GitHub a little while to compute the 'stats' items, in which
     # case the relevant binding functions will return None. We make these
@@ -270,11 +280,13 @@ def get_repo_impact_stats(gh, reponame):
             if result is not None:
                 return result
             sleep(3)
-        raise Exception('function %r took too long' % func)
+        raise Exception("function %r took too long" % func)
 
     contrib = repo.get_stats_contributors()
 
-    res.commits = github_list_size(repo.get_commits()) # this counts commits on main branch
+    res.commits = github_list_size(
+        repo.get_commits()
+    )  # this counts commits on main branch
     res.forks = github_list_size(repo.get_forks())
     res.stars = github_list_size(repo.get_stargazers())
     res.contributors = github_list_size(retry(repo.get_stats_contributors, contrib))
