@@ -30,23 +30,23 @@ from worklog import *
 def cli_bootstrap_bibtex(argv):
     """usage: wltool bootstrap-bibtex <bibtex-file> <your-surname> <output-dir>
 
-Create a new set of worklog files, seeding them with publication information
-gathered from from <bibtex-file>. Specify <your-surname> to assist in guessing
-of the "mypos" field (your position in the author list). The output directory
-<output-dir> must not exist when you run the program; this is to avoid
-accidental overwriting of existing files.
+    Create a new set of worklog files, seeding them with publication information
+    gathered from from <bibtex-file>. Specify <your-surname> to assist in guessing
+    of the "mypos" field (your position in the author list). The output directory
+    <output-dir> must not exist when you run the program; this is to avoid
+    accidental overwriting of existing files.
 
-Search the output files for "XXX" to find issues that need manual attention.
+    Search the output files for "XXX" to find issues that need manual attention.
 
-WARNING: the current implementation assumes that the file is one from ADS.
-Parsing files from other origins will probably fail."""
+    WARNING: the current implementation assumes that the file is one from ADS.
+    Parsing files from other origins will probably fail."""
 
     import os.path
 
     # note: we'll leave the output directory lying around if we die. I figure
     # that could be helpful for debugging.
 
-    if len(argv) != 4 or '--help' in argv:
+    if len(argv) != 4 or "--help" in argv:
         print(cli_bootstrap_bibtex.__doc__)
         raise SystemExit(1)
 
@@ -57,8 +57,12 @@ Parsing files from other origins will probably fail."""
     try:
         os.mkdir(outdir)
     except Exception as e:
-        die('cannot create output directory "%s": %s (%s)', outdir,
-            e, e.__class__.__name__)
+        die(
+            'cannot create output directory "%s": %s (%s)',
+            outdir,
+            e,
+            e.__class__.__name__,
+        )
 
     with open(bibpath) as bibfile:
         bootstrap_bibtex(bibfile, outdir, mysurname)
@@ -67,23 +71,22 @@ Parsing files from other origins will probably fail."""
 def cli_extract(argv):
     """usage: wltool extract <section-name> [datadir]
 
-Print out all records with the given section name. If not specified, the data
-directory is assumed to be the current directory.
+    Print out all records with the given section name. If not specified, the data
+    directory is assumed to be the current directory.
 
-See the README.md that came with this package for more detailed information."""
-
+    See the README.md that came with this package for more detailed information."""
 
     from inifile import write
     import sys
 
-    if len(argv) not in(2, 3) or '--help' in argv:
+    if len(argv) not in (2, 3) or "--help" in argv:
         print(cli_extract.__doc__)
         raise SystemExit(1)
 
     sectname = argv[1]
 
     if len(argv) < 3:
-        datadir = '.'
+        datadir = "."
     else:
         datadir = argv[2]
 
@@ -93,20 +96,19 @@ See the README.md that came with this package for more detailed information."""
 def cli_github_repos(argv):
     """usage: wltool github-repos [datadir]
 
-Print out a list of GitHub repositories that you've contributed to, marking
-potentially new ones.
+    Print out a list of GitHub repositories that you've contributed to, marking
+    potentially new ones.
 
-This uses the Google BigQuery dataset set up by githubarchive.org, and requires
-that API access to Google BigQuery and GitHub have been set up.
+    This uses the Google BigQuery dataset set up by githubarchive.org, and requires
+    that API access to Google BigQuery and GitHub have been set up.
+    """
 
-"""
-
-    if len(argv) not in (1, 2) or '--help' in argv:
+    if len(argv) not in (1, 2) or "--help" in argv:
         print(cli_github_repos.__doc__)
         raise SystemExit(1)
 
     if len(argv) < 2:
-        datadir = '.'
+        datadir = "."
     else:
         datadir = argv[1]
 
@@ -115,10 +117,10 @@ that API access to Google BigQuery and GitHub have been set up.
     known_repos = set()
 
     for i in load(datadir):
-        if i.section != 'repo':
+        if i.section != "repo":
             continue
 
-        if i.service != 'github':
+        if i.service != "github":
             continue
 
         known_repos.add(i.name)
@@ -126,50 +128,51 @@ that API access to Google BigQuery and GitHub have been set up.
     # Query GitHub repos with contributions and report
 
     import wlgithub
+
     gh = wlgithub.get_github_service(datadir)
     login = gh.get_user().login
     jobs = wlgithub.get_bigquery_jobs_service(datadir, [])
     n_feedstock = 0
 
     for name in wlgithub.get_repos_with_pushes_from_user(jobs, login):
-        if name.endswith('-feedstock'):
+        if name.endswith("-feedstock"):
             # conda-forge has zillions of feedstock repos; skip em
             n_feedstock += 1
             continue
 
-        flag = '  ' if name in known_repos else '**'
-        print('%-54s %s' % (name, flag))
+        flag = "  " if name in known_repos else "**"
+        print("%-54s %s" % (name, flag))
 
     if n_feedstock:
         print()
-        print('... and %d conda-forge-related feedstock repos' % n_feedstock)
+        print("... and %d conda-forge-related feedstock repos" % n_feedstock)
 
 
 def cli_nsf_collabs(argv):
     """usage: wltool nsf-collabs [datadir]
 
-Print out a list of collaborators in the past 48 months, a suitable basis for
-the generation of a list of collaborators for an NSF biographical sketch. You
-must manually check names, remove duplicates, split identical names, add
-organizational affiliations, and generally use your common sense. This tool
-uses authors on [pub] items; this does not necessarily map cleanly to the set
-of names that the NSF wants for such a list.
+    Print out a list of collaborators in the past 48 months, a suitable basis for
+    the generation of a list of collaborators for an NSF biographical sketch. You
+    must manually check names, remove duplicates, split identical names, add
+    organizational affiliations, and generally use your common sense. This tool
+    uses authors on [pub] items; this does not necessarily map cleanly to the set
+    of names that the NSF wants for such a list.
 
-The output will be formatted for inclusion in a LaTeX document.
-"""
+    The output will be formatted for inclusion in a LaTeX document."""
 
-    if len(argv) not in (1, 2) or '--help' in argv:
+    if len(argv) not in (1, 2) or "--help" in argv:
         print(cli_nsf_collabs.__doc__)
         raise SystemExit(1)
 
     if len(argv) < 2:
-        datadir = '.'
+        datadir = "."
     else:
         datadir = argv[1]
 
     # Set up for filtering by date
 
     import time
+
     cutoff_year, cutoff_month = time.localtime()[:2]
     cutoff_year -= 4
 
@@ -178,58 +181,58 @@ The output will be formatted for inclusion in a LaTeX document.
     names = set()
 
     for i in load(datadir):
-        if i.section != 'pub':
+        if i.section != "pub":
             continue
 
-        dbits = i.pubdate.split('/')
+        dbits = i.pubdate.split("/")
         iyear, imonth = list(map(int, dbits[:2]))
         if iyear < cutoff_year or imonth < cutoff_month:
             continue
 
-        for aubase in i.authors.split(';'):
+        for aubase in i.authors.split(";"):
             bits = aubase.strip().split()
-            surname = bits[-1].replace('_', ' ')
-            rest = ' '.join(bits[:-1])
+            surname = bits[-1].replace("_", " ")
+            rest = " ".join(bits[:-1])
             names.add((rest, surname))
 
     # Print, sorted by last name, in a format just ripe for filling in.
 
     for rest, surname in sorted(names, key=lambda t: t[1]):
-        print('%s, %s' % (surname, rest))
+        print("%s, %s" % (surname, rest))
 
 
 def _cli_render(argv):
     """usage: wltool %s <template> [datadir=.]
 
-Process log files and use the information to fill in <template>.
-If not specified, the data directory is assumed to be the current
-directory.
+    Process log files and use the information to fill in <template>.
+    If not specified, the data directory is assumed to be the current
+    directory.
 
-See the README.md that came with this package for more detailed information."""
+    See the README.md that came with this package for more detailed information."""
 
     fmtname = argv[0]
 
-    if len(argv) not in (2, 3) or '--help' in argv:
+    if len(argv) not in (2, 3) or "--help" in argv:
         print(_cli_render.__doc__ % fmtname)
         raise SystemExit(1)
 
     tmpl = argv[1]
 
     if len(argv) < 3:
-        datadir = '.'
+        datadir = "."
     else:
         datadir = argv[2]
 
-    if fmtname == 'latex':
+    if fmtname == "latex":
         render = render_latex
-    elif fmtname == 'html':
+    elif fmtname == "html":
         render = render_html
     else:
         die('unknown output format "%s"', fmtname)
 
     context, commands = setup_processing(render, datadir)
 
-    with io.open(tmpl, 'rb') as f:
+    with io.open(tmpl, "rb") as f:
         for outline in process_template(f, commands, context):
             print(outline)
 
@@ -241,17 +244,17 @@ cli_html = _cli_render
 def cli_summarize(argv):
     """usage: wltool summarize [datadir]
 
-Print out a summary of the different kinds of records in the log file. If not
-specified, the data directory is assumed to be the current directory.
+    Print out a summary of the different kinds of records in the log file. If not
+    specified, the data directory is assumed to be the current directory.
 
-See the README.md that came with this package for more detailed information."""
+    See the README.md that came with this package for more detailed information."""
 
-    if len(argv) not in (1, 2) or '--help' in argv:
+    if len(argv) not in (1, 2) or "--help" in argv:
         print(cli_summarize.__doc__)
         raise SystemExit(1)
 
     if len(argv) < 2:
-        datadir = '.'
+        datadir = "."
     else:
         datadir = argv[1]
 
@@ -263,25 +266,26 @@ See the README.md that came with this package for more detailed information."""
         maxsectlen = max(maxsectlen, len(i.section))
 
     for section, count in sorted(counts.items()):
-        print('% *s: %d' % (maxsectlen, section, count))
+        print("% *s: %d" % (maxsectlen, section, count))
 
 
-_update_minwait = 7 * 24 * 3600 # 1 week
+_update_minwait = 7 * 24 * 3600  # 1 week
+
 
 def cli_update_cites(argv):
     """usage: wltool update-cites [datadir]
 
-Fetch citation counts from NASA ADS and insert them into the log files.
-Prints out a summary of new citations by bibcode.
+    Fetch citation counts from NASA ADS and insert them into the log files.
+    Prints out a summary of new citations by bibcode.
 
-See the README.md that came with this package for more detailed information."""
+    See the README.md that came with this package for more detailed information."""
 
-    if len(argv) not in (1, 2) or '--help' in argv:
+    if len(argv) not in (1, 2) or "--help" in argv:
         print(cli_update_cites.__doc__)
         raise SystemExit(1)
 
     if len(argv) < 2:
-        datadir = '.'
+        datadir = "."
     else:
         datadir = argv[1]
 
@@ -289,54 +293,54 @@ See the README.md that came with this package for more detailed information."""
     from inifile import mutateInPlace
 
     now = int(time.time())
-    nowstr = time.strftime('%Y/%m/%d ', time.gmtime(now))
+    nowstr = time.strftime("%Y/%m/%d ", time.gmtime(now))
 
     for path in list_data_files(datadir):
         for item in mutateInPlace(path):
-            if not item.data.has('bibcode'):
+            if not item.data.has("bibcode"):
                 continue
 
             bibcode = item.data.bibcode
-            firstauth = item.data.has('mypos') and int(item.data.mypos) == 1
-            reffed = item.data.has('refereed') and item.data.refereed == 'y'
+            firstauth = item.data.has("mypos") and int(item.data.mypos) == 1
+            reffed = item.data.has("refereed") and item.data.refereed == "y"
 
-            if not item.data.has('adscites'):
+            if not item.data.has("adscites"):
                 lastupdate = curcites = 0
             else:
                 try:
                     a = item.data.adscites.split()[:2]
-                    y, m, d = [int(x) for x in a[0].split('/')]
+                    y, m, d = [int(x) for x in a[0].split("/")]
                     lastupdate = time.mktime((y, m, d, 0, 0, 0, 0, 0, 0))
                     curcites = int(a[1])
                 except Exception:
-                    warn('cannot parse adscites entry: %s', item.data.adscites)
+                    warn("cannot parse adscites entry: %s", item.data.adscites)
                     continue
 
             if lastupdate + _update_minwait > now:
                 continue
 
-            print(bibcode, ' *'[firstauth] + ' R'[reffed], '...', end=' ')
+            print(bibcode, " *"[firstauth] + " R"[reffed], "...", end=" ")
             try:
                 newcites = get_ads_cite_count(bibcode)
-                item.set('adscites', nowstr + str(newcites))
-                print('%d (%+d)' % (newcites, newcites - curcites))
+                item.set("adscites", nowstr + str(newcites))
+                print("%d (%+d)" % (newcites, newcites - curcites))
             except ADSCountError as e:
-                print('error!: %s' % e)
+                print("error!: %s" % e)
 
 
 def cli_update_github(argv):
     """usage: wltool update-github [datadir]
 
-Fetch contribution statistics regarding GitHub repositories that you've
-contributed to, and update the worklog records as appropriate. This requires
-that API access to GitHub has been set up."""
+    Fetch contribution statistics regarding GitHub repositories that you've
+    contributed to, and update the worklog records as appropriate. This requires
+    that API access to GitHub has been set up."""
 
-    if len(argv) not in (1, 2) or '--help' in argv:
+    if len(argv) not in (1, 2) or "--help" in argv:
         print(cli_update_github.__doc__)
         raise SystemExit(1)
 
     if len(argv) < 2:
-        datadir = '.'
+        datadir = "."
     else:
         datadir = argv[1]
 
@@ -347,26 +351,27 @@ that API access to GitHub has been set up."""
     debug_requests = False
     if debug_requests:
         import logging
+
         logging.basicConfig()
-        logging.getLogger('github.Requester').level = logging.DEBUG
+        logging.getLogger("github.Requester").level = logging.DEBUG
 
     gh = wlgithub.get_github_service(datadir)
 
     now = int(time.time())
-    nowstr = time.strftime('%Y/%m/%d', time.gmtime(now))
+    nowstr = time.strftime("%Y/%m/%d", time.gmtime(now))
 
     for path in list_data_files(datadir):
         for item in mutateInPlace(path):
-            if item.data.section != 'repo' or item.data.service != 'github':
+            if item.data.section != "repo" or item.data.service != "github":
                 continue
-            if item.data.has('skip') and item.data.skip == 'y':
+            if item.data.has("skip") and item.data.skip == "y":
                 continue
 
-            if not item.data.has('updated'):
+            if not item.data.has("updated"):
                 lastupdate = 0
             else:
                 try:
-                    y, m, d = [int(x) for x in item.data.updated.split('/')]
+                    y, m, d = [int(x) for x in item.data.updated.split("/")]
                     lastupdate = time.mktime((y, m, d, 0, 0, 0, 0, 0, 0))
                 except Exception:
                     warn('cannot parse "updated" entry: %s', item.data.updated)
@@ -377,48 +382,59 @@ that API access to GitHub has been set up."""
 
             name = item.data.name
 
-            print(name, '...')
+            print(name, "...")
             try:
-                #print gh.get_rate_limit().rate.remaining
-                mycommits = wlgithub.get_repo_commit_stats(gh, name, branch=item.data.get('branch'))
-                item.set('usercommits', mycommits.commits)
+                # print gh.get_rate_limit().rate.remaining
+                mycommits = wlgithub.get_repo_commit_stats(
+                    gh, name, branch=item.data.get("branch")
+                )
+                item.set("usercommits", mycommits.commits)
                 if mycommits.latest_date is not None:
-                    item.set('lastusercommit', '%04d/%02d/%02d' % (mycommits.latest_date.year,
-                                                                   mycommits.latest_date.month,
-                                                                   mycommits.latest_date.day))
+                    item.set(
+                        "lastusercommit",
+                        "%04d/%02d/%02d"
+                        % (
+                            mycommits.latest_date.year,
+                            mycommits.latest_date.month,
+                            mycommits.latest_date.day,
+                        ),
+                    )
 
                 impact = wlgithub.get_repo_impact_stats(gh, name)
 
-                if item.data.get('desc') is None:
-                    item.set('desc', impact.description)
-                item.set('allcommits', impact.commits)
-                item.set('forks', impact.forks)
-                item.set('stars', impact.stars)
-                item.set('contributors', impact.contributors)
+                if item.data.get("desc") is None:
+                    item.set("desc", impact.description)
+                item.set("allcommits", impact.commits)
+                item.set("forks", impact.forks)
+                item.set("stars", impact.stars)
+                item.set("contributors", impact.contributors)
 
-                item.set('updated', nowstr)
+                item.set("updated", nowstr)
             except GithubException as e:
-                warn('GitHub exception: %s', e)
+                warn("GitHub exception: %s", e)
                 continue
             except Exception as e:
-                warn('exception: %s (%s)', e, e.__class__.__name__)
+                warn("exception: %s (%s)", e, e.__class__.__name__)
                 continue
 
 
 # The dispatcher
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
 
-    if len(sys.argv) < 2 or sys.argv[1] == '--help':
+    if len(sys.argv) < 2 or sys.argv[1] == "--help":
         print(__doc__)
         raise SystemExit(0)
 
     cmdname = sys.argv[1]
-    clicmd = globals().get('cli_' + cmdname.replace('-', '_'))
+    clicmd = globals().get("cli_" + cmdname.replace("-", "_"))
 
     if not callable(clicmd):
-        die('unknown subcommand "%s"; run this program without arguments '
-            'for usage help', cmdname)
+        die(
+            'unknown subcommand "%s"; run this program without arguments '
+            "for usage help",
+            cmdname,
+        )
 
     clicmd(sys.argv[1:])
