@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # -*- mode: python ; coding: utf-8 -*-
-# Copyright 2014 Peter Williams <peter@newton.cx>
+# Copyright 2014-2022 Peter Williams <peter@newton.cx>
 # Licensed under the GNU General Public License, version 3 or higher.
 
 """usage: wltool <command> [arguments...]
@@ -20,9 +20,9 @@ workog commands are:
 Running 'wltool <command> --help' may give more information on the command
 in question."""
 
-from __future__ import absolute_import, division, print_function
-
 import io
+from itertools import chain
+from os.path import join as pjoin
 
 from worklog import *
 
@@ -94,10 +94,11 @@ def cli_extract(argv):
 
 
 def cli_github_repos(argv):
-    """usage: wltool github-repos [datadir]
+    """
+    usage: wltool github-repos [datadir]
 
-    Print out a list of GitHub repositories that you've contributed to, marking
-    potentially new ones.
+    Scan GitHub APIs and event data to find repositories that you have contributed to,
+    and report potentially new ones whose stats should be reported.
 
     This uses the Google BigQuery dataset set up by githubarchive.org, and requires
     that API access to Google BigQuery and GitHub have been set up.
@@ -114,38 +115,58 @@ def cli_github_repos(argv):
 
     # Get the set of already-known repositories
 
-    known_repos = set()
+    known_reponames = set()
 
-    for i in load(datadir):
-        if i.section != "repo":
-            continue
+    with open(pjoin(datadir, "repos.github_scan.dat"), "rt") as f:
+        for line in f:
+            line = line.split("#", 1)[0].strip()
+            if not line:
+                continue
 
-        if i.service != "github":
-            continue
+            known_reponames.add(line.split(None, 1)[0])
 
-        known_repos.add(i.name)
-
-    # Query GitHub repos with contributions and report
+    # Query GitHub repos where I have a merged pull request, or I have a direct
+    # push and the repo is not a fork.
+    #
+    # Here and throughout, we ignore conda-forge feedstock repos, of
+    # which I've contributed to literally hundreds.
 
     import wlgithub
 
     gh = wlgithub.get_github_service(datadir)
     login = gh.get_user().login
     jobs = wlgithub.get_bigquery_jobs_service(datadir, [])
+
+    all_reponames = set(
+        chain(
+            wlgithub.get_repos_with_merged_prs_from_user(jobs, login),
+            wlgithub.get_root_repos_with_pushes_from_user(gh, jobs, login),
+        )
+    )
+
+    # Filter down
+
+    new_reponames = set()
     n_feedstock = 0
+    n_known = 0
 
-    for name in wlgithub.get_repos_with_pushes_from_user(jobs, login):
-        if name.endswith("-feedstock"):
-            # conda-forge has zillions of feedstock repos; skip em
+    for reponame in all_reponames:
+        if reponame.endswith("-feedstock"):
             n_feedstock += 1
-            continue
+        elif reponame in known_reponames:
+            n_known += 1
+        else:
+            new_reponames.add(reponame)
 
-        flag = "  " if name in known_repos else "**"
-        print("%-54s %s" % (name, flag))
+    # Report
 
-    if n_feedstock:
+    for reponame in sorted(new_reponames):
+        print(reponame)
+
+    if n_feedstock or n_known:
         print()
-        print("... and %d conda-forge-related feedstock repos" % n_feedstock)
+        print(f"... and {n_known} already-known repos")
+        print(f"... and {n_feedstock} conda-forge-related feedstock repos")
 
 
 def cli_nsf_collabs(argv):

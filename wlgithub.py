@@ -1,16 +1,25 @@
 #! /usr/bin/env python
 # -*- mode: python; coding: utf-8 -*-
-# Copyright 2015-2017 Peter Williams <peter@newton.cx>
+# Copyright 2015-2022 Peter Williams <peter@newton.cx>
 
 """Worklog-related tools for accessing GitHub history, since that seems like
 the best available option for capturing my open-source efforts.
 
 """
 
-from __future__ import absolute_import, division, print_function
-from six.moves import range, zip
+import argparse
+from itertools import chain
+import os.path
+import time
 
-import json, os.path, time
+__all__ = [
+    "get_bigquery_jobs_service",
+    "get_github_service",
+    "get_repo_commit_stats",
+    "get_repo_impact_stats",
+    "get_repos_with_merged_prs_from_user",
+    "get_root_repos_with_pushes_from_user",
+]
 
 # potential errors we could handle:
 #   googleapiclient.errors.HttpError
@@ -132,53 +141,59 @@ def run_bigquery(jobs, qstring):
         total_rows = get_total_rows(res)
 
 
-def format_string_literal(text):
-    """The Google Python libraries do not seem to provide a function for this, and
+def _format_string_literal(text):
+    """
+    The Google Python libraries do not seem to provide a function for this, and
     Googling does not yield anything helpful. Hopefully my attempt is not
     broken!
-
     """
+
     return '"' + text.replace('"', '\\"').replace("'", "\\'") + '"'
 
 
-def get_repos_with_pushes_from_user(jobs, login):
-    """Returns a set of names of repository (of the format "owner/reponame") that
-    a user has pushed to since 2011.
-
-    I'd kind of like to access aggregated monthly tables rather than a
-    separate table for every single day, but presumably the by-day storage is
-    decently efficient, and I don't see an easy way to query all by-month
-    tables starting with 201501 (unless there's a way that I can turn that
-    into a numerical test?). But we have to break the queries up into chunks
-    to not look at too many tables at once (current maximum: 1000).
-
+def _generate_repo_names(jobs, query_template, extra_args=()):
     """
-    from itertools import chain
+    Generate a set of repository names from some BigQuery query.
+
+    The query template should contain a specifier of the form ``FROM
+    `githubarchive.day.2*` WHERE _TABLE_SUFFIX BETWEEN {0} AND {1}``, which will
+    be used to multiplex the query over the archive's day-by-day tables.
+    Additional query parmeters should be numbered ``{2}``, etc., and be passed
+    in ``extra_args``. The query should yield a result including a column named
+    ``reponame`` with a GitHub repository name. These values will be filtered to
+    make sure that they contain forward slashes, so don't get cute.
+
+    (The ``day.2*`` form is needed to not match "views" in the table query such
+    as ``day.yesterday``, which lead to BigQuery errors.)
+
+    Commentary from many years ago that I don't remember the context for: "I'd
+    kind of like to access aggregated monthly tables rather than a separate
+    table for every single day, but presumably the by-day storage is decently
+    efficient, and I don't see an easy way to query all by-month tables starting
+    with 201501 (unless there's a way that I can turn that into a numerical
+    test?). But we have to break the queries up into chunks to not look at too
+    many tables at once (current maximum: 1000)."
+    """
+
+    # Construct the queries
+
+    assert "2*" in query_template
 
     first_year = 2011  # start of githubarchive data set.
-    cur_year = time.localtime()[0]
-
-    year_ts_template = "TIMESTAMP('{0}-01-01')"
-    query_template = """
-SELECT
-  UNIQUE(repo.name) AS reponame
-FROM
-  TABLE_DATE_RANGE([githubarchive:day.], {0}, {1})
-WHERE
-  actor.login == {2} AND
-  type == "PushEvent"
-"""
-
+    next_year = time.localtime()[0] + 1
     queries = []
-    for year in range(first_year, cur_year):
-        y1 = year_ts_template.format(year)
-        y2 = year_ts_template.format(year + 1)
-        queries.append(query_template.format(y1, y2, format_string_literal(login)))
 
-    y = year_ts_template.format(cur_year)
-    queries.append(
-        query_template.format(y, "CURRENT_TIMESTAMP()", format_string_literal(login))
-    )
+    def year_to_bound(y):
+        s = str(y)
+        assert s[0] == "2"
+        return f"'{s[1:]}0101'"
+
+    for year in range(first_year, next_year):
+        y1 = year_to_bound(year)
+        y2 = year_to_bound(year + 1)
+        queries.append(query_template.format(y1, y2, *extra_args))
+
+    # Now run it.
 
     seen = set()
     results = chain(*[run_bigquery(jobs, q) for q in queries])
@@ -195,6 +210,64 @@ WHERE
             continue
         seen.add(name)
         yield name
+
+
+def get_repos_with_merged_prs_from_user(jobs, login):
+    """
+    Returns a set of GitHub repository names (of the format "owner/reponame") that
+    have merged a PR from the user since 2011.
+    """
+
+    template = """#standardSQL
+SELECT DISTINCT reponame FROM (
+    SELECT reponame, evtaction, pruser, prmerged FROM (
+        SELECT
+            repo.name AS reponame,
+            JSON_VALUE(payload, "$.action") AS evtaction,
+            JSON_VALUE(payload, "$.pull_request.user.login") AS pruser,
+            JSON_VALUE(payload, "$.pull_request.merged") AS prmerged
+        FROM
+            `githubarchive.day.2*`
+        WHERE
+            _TABLE_SUFFIX BETWEEN {0} AND {1} AND
+            type = 'PullRequestEvent'
+    ) WHERE
+        evtaction = 'closed' AND
+        pruser = {2} AND
+        prmerged = 'true'
+)
+"""
+    return _generate_repo_names(jobs, template, (_format_string_literal(login),))
+
+
+def get_root_repos_with_pushes_from_user(gh, jobs, login):
+    """
+    Returns a set of GitHub repository names (of the format "owner/reponame") that
+    a user has pushed to since 2011. The ``login`` argument is a GitHub username,
+    e.g. ``"pkgw"``.
+
+    This search filters out fork repos, since pushes to forks may represent updates
+    to others' PRs or one-off work that isn't worth reporting. The search for merged
+    PRs should pick up the vast majority of repos of interest. However, there might
+    be repos of interest where I'm pushing directly to the main branch but haven't
+    actually filed any PRs.
+
+    """
+    template = """#standardSQL
+SELECT DISTINCT reponame FROM (
+    SELECT
+        repo.name AS reponame
+    FROM
+        `githubarchive.day.2*`
+    WHERE
+        _TABLE_SUFFIX BETWEEN {0} AND {1} AND
+        type = 'PushEvent' AND
+        actor.login = {2}
+)
+"""
+    is_not_fork = lambda reponame: not gh.get_repo(reponame).fork
+    repo_gen = _generate_repo_names(jobs, template, (_format_string_literal(login),))
+    return filter(is_not_fork, repo_gen)
 
 
 def get_github_service(authdir):
