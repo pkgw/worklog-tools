@@ -10,6 +10,7 @@ the best available option for capturing my open-source efforts.
 import argparse
 from itertools import chain
 import os.path
+import sys
 import time
 
 __all__ = [
@@ -84,15 +85,13 @@ def get_bigquery_jobs_service(authdir, args):
     return jobs
 
 
-def run_bigquery(jobs, qstring):
+def _run_bigquery(jobs, qstring):
     """Execute a BigQuery query using a `jobs` Resource object. Returns a
     generator that yields a dict() of data corresponding to each returned row.
     If your query is going to generate 10 million rows, it should just keep on
     plugging until you've seen them all.
 
     """
-
-    from sys import maxsize
 
     body = {"query": qstring}
     req = jobs.query(projectId=jobs.my_project_id, body=body)
@@ -101,7 +100,7 @@ def run_bigquery(jobs, qstring):
 
     def get_total_rows(result):
         tr = result.get("totalRows")
-        return maxsize if tr is None else int(tr)
+        return sys.maxsize if tr is None else int(tr)
 
     colnames = None
     res = qres
@@ -117,7 +116,8 @@ def run_bigquery(jobs, qstring):
         res = req.execute()
 
         if "rows" not in res:
-            print("[no rows, looping ...]")
+            print("[no rows, looping ...]", file=sys.stderr)
+            time.sleep(3)  # looks like the API call doesn't block for us
             continue
 
         if colnames is None:
@@ -127,11 +127,11 @@ def run_bigquery(jobs, qstring):
                 # grrr sometimes this happens still
                 from pprint import pprint
 
-                print("XXX bizzah KeyError:")
-                pprint(e)
-                print("XXX result:")
-                pprint(res)
-                print("XXX raising:")
+                print("XXX bizzah KeyError:", file=sys.stderr)
+                pprint(e, file=sys.stderr)
+                print("XXX result:", file=sys.stderr)
+                pprint(res, file=sys.stderr)
+                print("XXX raising:", file=sys.stderr)
                 raise
 
         for rowdata in res["rows"]:
@@ -151,7 +151,7 @@ def _format_string_literal(text):
     return '"' + text.replace('"', '\\"').replace("'", "\\'") + '"'
 
 
-def _generate_repo_names(jobs, query_template, extra_args=()):
+def _generate_repo_names(jobs, desc, query_template, extra_args=()):
     """
     Generate a set of repository names from some BigQuery query.
 
@@ -191,12 +191,16 @@ def _generate_repo_names(jobs, query_template, extra_args=()):
     for year in range(first_year, next_year):
         y1 = year_to_bound(year)
         y2 = year_to_bound(year + 1)
-        queries.append(query_template.format(y1, y2, *extra_args))
+        queries.append((year, query_template.format(y1, y2, *extra_args)))
 
     # Now run it.
 
+    def runone(tup):
+        print(f"[Querying for {desc} in {tup[0]} ...]", file=sys.stderr)
+        return _run_bigquery(jobs, tup[1])
+
     seen = set()
-    results = chain(*[run_bigquery(jobs, q) for q in queries])
+    results = chain.from_iterable(runone(t) for t in queries)
 
     for r in results:
         name = r["reponame"]
@@ -237,7 +241,9 @@ SELECT DISTINCT reponame FROM (
         prmerged = 'true'
 )
 """
-    return _generate_repo_names(jobs, template, (_format_string_literal(login),))
+    return _generate_repo_names(
+        jobs, "merged PRs", template, (_format_string_literal(login),)
+    )
 
 
 def get_root_repos_with_pushes_from_user(gh, jobs, login):
@@ -253,6 +259,8 @@ def get_root_repos_with_pushes_from_user(gh, jobs, login):
     actually filed any PRs.
 
     """
+    from github import UnknownObjectException
+
     template = """#standardSQL
 SELECT DISTINCT reponame FROM (
     SELECT
@@ -265,9 +273,28 @@ SELECT DISTINCT reponame FROM (
         actor.login = {2}
 )
 """
-    is_not_fork = lambda reponame: not gh.get_repo(reponame).fork
-    repo_gen = _generate_repo_names(jobs, template, (_format_string_literal(login),))
-    return filter(is_not_fork, repo_gen)
+
+    def ensure_is_not_fork(reponame):
+        if "/" not in reponame:
+            print(
+                f"[warning: repo name `{reponame}` looks invalid; skipping]",
+                file=sys.stderr,
+            )
+            return False
+
+        try:
+            return not gh.get_repo(reponame).fork
+        except UnknownObjectException:
+            print(f"[no current repo `{reponame}`; skipping]", file=sys.stderr)
+            return False
+        except:
+            print(f"[failed GitHub API query for `{reponame}`]", file=sys.stderr)
+            raise
+
+    repo_gen = _generate_repo_names(
+        jobs, "root-repo pushes", template, (_format_string_literal(login),)
+    )
+    return filter(ensure_is_not_fork, repo_gen)
 
 
 def get_github_service(authdir):

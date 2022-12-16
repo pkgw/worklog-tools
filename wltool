@@ -23,6 +23,7 @@ in question."""
 import io
 from itertools import chain
 from os.path import join as pjoin
+import sys
 
 from worklog import *
 
@@ -165,8 +166,11 @@ def cli_github_repos(argv):
 
     if n_feedstock or n_known:
         print()
-        print(f"... and {n_known} already-known repos")
-        print(f"... and {n_feedstock} conda-forge-related feedstock repos")
+        print(f"[... and {n_known} already-known repos]", file=sys.stderr)
+        print(
+            f"[... and {n_feedstock} conda-forge-related feedstock repos]",
+            file=sys.stderr,
+        )
 
 
 def cli_nsf_collabs(argv):
